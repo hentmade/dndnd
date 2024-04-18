@@ -7,26 +7,39 @@ file_path_foreground = './img1.jpg'
 img_background = cv2.imread(file_path_background)
 img_foreground = cv2.imread(file_path_foreground)
 
-fgbg2 = cv2.createBackgroundSubtractorMOG2()
 
-fgbg2.apply(img_background)
-img = fgbg2.apply(img_foreground)
-cv2.imwrite("./output.jpg",img)
+#grayscale images
+img_background_gray = cv2.cvtColor(img_background, cv2.COLOR_BGR2GRAY)
+img_foreground_gray = cv2.cvtColor(img_foreground, cv2.COLOR_BGR2GRAY)
 
-""" scale_down = 0.2
-#scaled_f_down = cv2.resize(image, None, fx= scale_down, fy= scale_down, interpolation= cv2.INTER_LINEAR)
+#invert
+cv2.bitwise_not(img_background_gray, img_background_gray)
+cv2.bitwise_not(img_foreground_gray, img_foreground_gray)
 
-resized_down = cv2.resize(img, None, fx= scale_down, fy= scale_down, interpolation= cv2.INTER_LINEAR)
-#resized_background= cv2.resize(img_background, down_points, interpolation= cv2.INTER_LINEAR)
-#resized_foreground = cv2.resize(img_foreground, down_points, interpolation= cv2.INTER_LINEAR)
-resized_background = cv2.resize(img_background, None, fx= scale_down, fy= scale_down, interpolation= cv2.INTER_LINEAR)
-resized_foreground = cv2.resize(img_foreground, None, fx= scale_down, fy= scale_down, interpolation= cv2.INTER_LINEAR)
-#resized_masked_img = cv2.resize(masked_img, None, fx= scale_down, fy= scale_down, interpolation= cv2.INTER_LINEAR)
+#subtract
+output = cv2.subtract(img_foreground_gray, img_background_gray)
 
-cv2.imshow("resized_down",resized_down)
-cv2.imshow("resized_background",resized_background)
-cv2.imshow("resized_foreground",resized_foreground) """
-""" cv2.imshow("resized_masked_img",masked_img) """
+#blur
+kernelSize = 7
+output = cv2.medianBlur(output, kernelSize)
 
-""" cv2.waitKey(0)
-cv2.destroyAllWindows() """
+#binary
+thresholdValue = 35
+maxValue = 255
+thresholdType = 0;      # 0: Binary, 1: Binary Inverted, 2: Truncate, 3: To Zero, 4: To Zero Inverted
+cv2.threshold(output, thresholdValue, maxValue, thresholdType, output)
+
+# calculate moments
+M = cv2.moments(output)
+ 
+# calculate x,y coordinate of center
+cX = int(M["m10"] / M["m00"])
+cY = int(M["m01"] / M["m00"])
+
+
+cv2.imshow("background", img_background_gray)
+cv2.imshow("foreground", img_foreground_gray)
+cv2.imshow("output", output)
+
+cv2.waitKey(0)
+cv2.destroyAllWindows()
