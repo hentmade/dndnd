@@ -37,4 +37,5 @@ class ImageProcessor:
         plt.subplot(121),plt.imshow(self.image),plt.title('Input')
         plt.subplot(122),plt.imshow(dst),plt.title('Output')
         plt.show()
-        
+    
+
