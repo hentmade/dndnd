@@ -1,27 +1,29 @@
 import cv2
 from ImageProcessor import ImageProcessor
 from ClickEventHandler import ClickEventHandler
+import pyautogui
 
 
 # Bildpfad angeben
-image_path = "Assets\\map_from_camera.jpg"
+beamer_image_path = "Assets\\encounter.webp"
+camera_image_path = "Assets\\map_with_figure.jpg"
 
 # Instanz von ImageProcessor erstellen
-processor = ImageProcessor(image_path)
+beamer_imgProcessor = ImageProcessor(beamer_image_path)
+camera_imgProcessor = ImageProcessor(camera_image_path)
 
-# Bild um 90 Grad drehen
-processor.rotate_image()
-
+# Bild um X Grad drehen
+beamer_imgProcessor.rotate_image(90)
 # Bild auf Beamergröße skalieren
-processor.resize_image(width=1920, height=1080)
+beamer_imgProcessor.resize_image(width=1920, height=1080)
+# Bild anzeigen in Window Main
+beamer_imgProcessor.display_image("Main")
 
-# Bild transformieren
-processor.transform_image()
+# Kamera-Bild transformieren und für Weiterverarbeitung vorbereiten
+transformed_image = camera_imgProcessor.transform_image()
 
-# Bild anzeigen
-processor.display_image()
+# Transformiertes Kamera-Bild in Window Channel anzeigen
+cv2.imshow('Channel',transformed_image)
 
-# Clicks entgegennehmen
-#calling the mouse click event
 cv2.waitKey(0)
 cv2.destroyAllWindows()
