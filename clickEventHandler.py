@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 
+#DEPRECATED
 class ClickEventHandler:
 
     def __init__(self,img,refPt):
