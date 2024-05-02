@@ -34,8 +34,7 @@ class ImageProcessor:
     def display_image(self, window_name='Image'):
         # Show image in window
         cv2.imshow(window_name, self.image)
-        # cv2.waitKey(0)
-        # cv2.destroyAllWindows()
+
 
     def click_event(self, event, x, y, flags, param):
         img_copy = self.image.copy()  # Create a copy of the original image
@@ -63,7 +62,7 @@ class ImageProcessor:
         cv2.waitKey(0)
         cv2.destroyWindow('Transformed Image')
         
-        #Get Corners from Original picture by clicking from: LinksOben - LinksUnten - RechtsUnten - RechtsOben 
+        #Get Corners from Original picture by clicking from: LinksOben - RechtsOben - RechtsUnten - LinksUnten 
         original_pts = np.float32(self.clicked_points) 
         #Project clicked points 
         projected_pts = np.float32([[0, 0], [self.image.shape[1], 0], [self.image.shape[1], self.image.shape[0]], [0, self.image.shape[0]]])

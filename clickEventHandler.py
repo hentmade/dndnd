@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 
-#DEPRECATED
+#DEPRECATED - Not used - click_event inside ImageProcessor Class
 class ClickEventHandler:
 
     def __init__(self,img,refPt):
@@ -29,8 +29,6 @@ class ClickEventHandler:
             cv2.putText(self.img, strBGR, (x,y), font, 0.5, (0,255,255), 2)
             cv2.imshow("image", self.img)
 
-
-    #Here, you need to change the image name and it's path according to your directory
     
 
 
