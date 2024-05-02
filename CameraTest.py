@@ -1,5 +1,5 @@
 import cv2
-from ImageProcessor import *
+from imageProcessor import *
 import pyautogui
 
 
