@@ -1,7 +1,7 @@
 import cv2
-import pyautogui
 from ImageProcessor import ImageProcessor
 from ClickEventHandler import ClickEventHandler
+import pyautogui
 
 
 # Bildpfad angeben
@@ -15,7 +15,7 @@ camera_imgProcessor = ImageProcessor(camera_image_path)
 # Bild um X Grad drehen
 beamer_imgProcessor.rotate_image(90)
 # Bild auf Beamergröße skalieren
-beamer_imgProcessor.resize_image(width=1920, height=1080)
+beamer_imgProcessor.resize_image()
 # Bild anzeigen in Window Main
 beamer_imgProcessor.display_image("Main")
 
