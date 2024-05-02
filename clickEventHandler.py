@@ -30,8 +30,5 @@ class ClickEventHandler:
             cv2.imshow("image", self.img)
 
 
-    #Here, you need to change the image name and it's path according to your directory
-    
-
 
     

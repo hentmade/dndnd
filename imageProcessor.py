@@ -1,7 +1,5 @@
 import cv2
 import numpy as np
-import matplotlib.pyplot as plt
-from ClickEventHandler import ClickEventHandler
 import pyautogui
 
 class ImageProcessor:
@@ -34,8 +32,6 @@ class ImageProcessor:
     def display_image(self, window_name='Image'):
         # Show image in window
         cv2.imshow(window_name, self.image)
-        # cv2.waitKey(0)
-        # cv2.destroyAllWindows()
 
     def click_event(self, event, x, y, flags, param):
         img_copy = self.image.copy()  # Create a copy of the original image
@@ -58,12 +54,13 @@ class ImageProcessor:
 
     def transform_image(self): 
         # Show image and get the clicked points for transformation
+        
         cv2.imshow('Transformed Image', self.image)
         cv2.setMouseCallback('Transformed Image', self.click_event, param=self.image)
         cv2.waitKey(0)
         cv2.destroyWindow('Transformed Image')
         
-        #Get Corners from Original picture by clicking from: LinksOben - LinksUnten - RechtsUnten - RechtsOben 
+        #Get Corners from Original picture by clicking from: LinksOben - RechtsOben - RechtsUnten - LinksUnten 
         original_pts = np.float32(self.clicked_points) 
         #Project clicked points 
         projected_pts = np.float32([[0, 0], [self.image.shape[1], 0], [self.image.shape[1], self.image.shape[0]], [0, self.image.shape[0]]])
