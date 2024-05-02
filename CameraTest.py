@@ -1,6 +1,5 @@
 import cv2
-from ImageProcessor import ImageProcessor
-from ClickEventHandler import ClickEventHandler
+from ImageProcessor import *
 import pyautogui
 
 

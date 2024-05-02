@@ -1,7 +1,5 @@
 import cv2
 import numpy as np
-import matplotlib.pyplot as plt
-from ClickEventHandler import ClickEventHandler
 import pyautogui
 
 class ImageProcessor:
@@ -34,8 +32,6 @@ class ImageProcessor:
     def display_image(self, window_name='Image'):
         # Show image in window
         cv2.imshow(window_name, self.image)
-        # cv2.waitKey(0)
-        # cv2.destroyAllWindows()
 
     def click_event(self, event, x, y, flags, param):
         img_copy = self.image.copy()  # Create a copy of the original image

@@ -29,7 +29,6 @@ class ClickEventHandler:
             cv2.putText(self.img, strBGR, (x,y), font, 0.5, (0,255,255), 2)
             cv2.imshow("image", self.img)
 
-    
 
 
     
