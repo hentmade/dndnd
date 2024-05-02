@@ -1,5 +1,7 @@
 import cv2
 import pyautogui
+from ImageProcessor import ImageProcessor
+from ClickEventHandler import ClickEventHandler
 
 
 # Bildpfad angeben
