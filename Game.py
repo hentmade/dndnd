@@ -50,6 +50,7 @@ player_count = 2
 enemy_count = 2
 event_count = 2
 item_count = 2
+figure_sequence = []
 
 # 2. Über Height / Width das Spielfeld erstellen und initialisieren
 
@@ -63,11 +64,13 @@ game_field.initialize_GameField()
 #       a.	Erste Figur aufs Spielfeld stellen
 #       b.	Figur erkennen über Background-Subtraction
 #       c.	Position der Figur erkennen
-#       d.	Figur benennen z.B. erste Player Figur  Player_1  bis Player_X
+#       d.	Figur benennen z.B. erste Player Figur --> Player_1  bis Player_X
 #       e.	Type auf PLAYER stellen
 #       f.	Add_Figure()
+#       g.  Figur in Spielerreihenfolge aufnehmen
 
-game_field.add_figure('Player1',Figure_Type.PLAYER,(8,2),1)
+for i in range(1,player_count+1):
+    figure_sequence.append(game_field.add_figure(f'Player_{i}',Figure_Type.PLAYER,(0,i),1))
 
 
 # 4.	Selbe Schleife für Gegner Figuren  Schleife mit Anzahl Gegner X
@@ -77,8 +80,8 @@ game_field.add_figure('Player1',Figure_Type.PLAYER,(8,2),1)
 #       d.	Figur benennen z.B. erste Gegner Figur  Enemy_1  bis Enemy_X
 #       e.	Type auf PLAYER stellen
 #       f.	Add_Figure()
-
-game_field.add_figure('Enemy1',Figure_Type.ENEMY,(10,9),1)
+for i in range(1,enemy_count+1):
+    figure_sequence.append(game_field.add_figure('Enemy_{i}',Figure_Type.ENEMY,(10+i,9),1))
 
 
 # 5.	Events verteilen
@@ -97,6 +100,8 @@ game_field.add_event("TRAP",(2,2),1)
 
 
 
+
+
 # 8.	VisuStates setzen
 #       a.	Items anzeigen z.B. Schatztruhen, Fackeln
 #       b.	Evtl. Events anzeigen
@@ -111,21 +116,44 @@ game_field.visualize_GameField() # GameField visualisieren in Terminal
 
 
 # ----------------------------------------------------- GAME-LOOP -------------------------------------------------------
+finished = False
+round = 0
+all_figures_count = player_count + enemy_count
+selected_figure = 0
 
-# -	Nach der Reihenfolge Player_1 bis Player_X 
-# -	danach Gegner_1 bis Gegner_X
 
-# 1.	Figur die dran ist auswählen
-# 2.	Startposition der Figur einlesen
-# 3.	Figur bewegen 
-# 4.	Endposition der Figur einlesen
-# 5.	Move_Figure(Start,Ende) ausführen
-# 6.	Trigger()-Funktion auslösen
-#       a.	Liest aus ob die Ziel-Zelle ein Event enthält 
-#       b.	Event auslösen
-# 7.	VisuStates() neu setzen und anzeigen
-# 8.	Aktionen ausführen
-#       a.	Item anklicken, wenn Spielerfigur im Abstand 1 zu dem Item steht
-# 9.	VisuStates() neu setzen und anzeigen
-# 10.	Next Player() 
+while(not finished):
+    # 1.	Figur die dran ist auswählen
+    # Nach der Reihenfolge Player_1 bis Player_X, danach Gegner_1 bis Gegner_X
+    selected_figure = (Figure)(figure_sequence[round % all_figures_count])
+    
+    # 2.	Start- und Endposition der Figur einlesen
+    start_pos = selected_figure.position  # ToDo: Die Start-Positionen müssen später über Kamera eingelesen werden
+    end_pos = (5,5) # ToDo: Die End-Positionen müssen später über Kamera eingelesen werden --> statt start_pos+1
+    
+    # 3.	Figur bewegen 
+    game_field.move_figure(selected_figure,start_pos,end_pos)
+    
+
+    # 4.	Cell.Trigger(new_position)-Funktion auslösen 
+    #       --> Trigger Funktion ist vom Event selber, Zelle braucht noch eine CheckEvent() Funktion
+    #       --> Zelle an der neuen Position auswerten
+    #       --> Schauen ob an der Zelle ein Event
+    #       --> Wenn Ja Trigger()
+  
+
+    # 5.	Aktionen ausführen
+    #       a.	Item anklicken, wenn Spielerfigur im Abstand 1 zu dem Item steht
+    # ToDo: Item-Klasse anpassen
+
+    # 6.	VisuStates() neu setzen und anzeigen
+    #       --> Funktion RefreshVisuStates(): Events etc. müssen die VisuStates verändern! 
+    #       --> Visualisierung des Events auf Cell projizieren
+    
+    game_field.set_visu_state((0,10),VisuState.EARTH)
+    game_field.visualize_GameField() # GameField visualisieren in Terminal
+
+    # 7.	Next Player() 
+    round += 1
+
 

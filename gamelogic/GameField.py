@@ -16,27 +16,43 @@ class GameField:
             for cell in row:
                 cell.set_visu_state(None)
                 
+    def get_cell(self,position):
+        x,y = position
+        return (Cell)(self.cells[x][y])        
+
+    
 
     def add_figure(self,name,type, position,size=1):
         x,y = position
-        self.cells[x][y].add_figure(name,type,size)
+        return (Cell)(self.cells[x][y]).add_figure(name,type,size)
+    
+    def move_figure(self,figure,start_position,end_position):
+        (Figure)(figure).position = end_position
+        x,y = start_position
+        (Cell)(self.cells[x][y]).figure = None
+        x,y = end_position
+        (Cell)(self.cells[x][y]).figure = figure    
+    
+    def remove_figure(self,position):
+        x,y = position
+        (Cell)(self.cells[x][y]).remove_figure(position)
 
     def add_event(self, type, position, size=1):
         x,y = position
-        self.cells[x][y].add_event(type,size)
+        (Cell)(self.cells[x][y]).add_event(type,size)
 
     def set_terrain(self, position, terrain_type):
         x,y = position
-        self.cells[x][y].terrain = Terrain(terrain_type)
+        (Cell)(self.cells[x][y]).terrain = Terrain(terrain_type)
 
     
     def add_object(self, position, obj_type):
         x,y = position
-        self.cells[x][y].obj = Object(obj_type)    
+        (Cell)(self.cells[x][y]).obj = Object(obj_type)    
 
     def set_visu_state(self, position, visu_state):
         x,y = position
-        self.cells[x][y].set_visu_state(visu_state)
+        (Cell)(self.cells[x][y]).set_visu_state(visu_state)
 
     def visualize_GameField(self):
         for row in self.cells:

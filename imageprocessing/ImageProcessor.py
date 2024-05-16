@@ -5,7 +5,7 @@ import pyautogui
 class ImageProcessor:
     def __init__(self, image_path):
         self.image = cv2.imread(image_path)
-        self.clicked_points = []
+        self.clicked_points = []       
 
     
     def rotate_image(self, angle):

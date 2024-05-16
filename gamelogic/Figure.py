@@ -1,5 +1,6 @@
 from Object import *
 from enum import Enum
+from Cell import *
 
 class Figure_Type(Enum):
     PLAYER = 'P'
@@ -18,5 +19,8 @@ class Figure(Object):
 
     def move(self, new_position):
         self.position = new_position
+        return self.position
+        
+
     
         
