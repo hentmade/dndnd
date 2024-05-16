@@ -14,8 +14,6 @@ output = BackgroundSubtraction.subtract(img_foreground, img_background)
 
 output = GridPlotter.plot_to_img(50, 40, output)
 
-
-
 cX = MomentsDetection.detectX(output)
 cY = MomentsDetection.detectY(output)
 

@@ -4,37 +4,38 @@ from gamelogic.Figure import *
 from gamelogic.Event import *
 from gamelogic.Item import *
 from imageprocessing.ImageProcessor import *
-
-
+from imageprocessing.ImageTransformer import *
 
 # ----------------------------------------------------- VORBEREITUNG -----------------------------------------------------
 
 
-# 1. Bild über Beamer projizieren
+# Bildpfad angeben
 beamer_image_path = "Assets\\encounter.webp"
+background_image_path = "Assets\\background.jpg"
+camera_image_path = "Assets\\background_with_figure.jpg"
+
+# Instanz von ImageProcessor erstellen
 beamer_imgProcessor = ImageProcessor(beamer_image_path)
+camera_imgTransformer = ImageTransformer()
+
+# Bild um X Grad drehen
+beamer_imgProcessor.rotate_image(90)
+# Bild auf Beamergröße skalieren
+beamer_imgProcessor.resize_image()
+# Bild anzeigen in Window Main
+beamer_imgProcessor.display_image("Main")
 
 
-# 2. Bild über Kamera einlesen
-camera_image_path = "Assets\\map_with_figure.jpg"
-camera_imgProcessor = ImageProcessor(camera_image_path)
+# SCREENSHOT OHNE FIGUR
+transformed_image1 = camera_imgTransformer.transform_image(background_image_path)
+cv2.imshow('Channel1',transformed_image1)
 
-
-# 3. Bild vorverarbeiten und anzeigen
-beamer_imgProcessor.rotate_image(90) # Bild um X Grad drehen 
-beamer_imgProcessor.resize_image() # Bild auf Beamergröße skalieren
-beamer_imgProcessor.display_image("Main") # Bild anzeigen in Window Main
-transformed_image = camera_imgProcessor.transform_image() # Kamera-Bild transformieren und für Weiterverarbeitung vorbereiten
 cv2.waitKey(0)
 
-# 4. Grid erkennen und Cell-Size ermitteln 
-# ToDo: Height und Width in Zellenanzahl ermitteln über Background-Subtractio
+# ToDo: Hier muss die GITTERERKENNUNG rein und die Zellen in x und y Richtung liefern
 
-game_field_height = 20 # Hier muss die Zahl aus Background-Subtraction hinzugefügt werden!
-game_field_width = 20 # 
-
-#cv2.imshow('Channel',transformed_image) # Transformiertes Kamera-Bild in Window Channel anzeigen
-
+game_field_height = 40 # Hier muss die Zahl aus Background-Subtraction hinzugefügt werden!
+game_field_width = 50 
 
 
 # -------------------------------------------------- SPIELFELD INITIALISIEREN --------------------------------------------------
@@ -43,8 +44,8 @@ game_field_width = 20 #
 # Außerdem liefert uns Background-Subtraction im ersten Schritt erstmal die Anzahl der Zellen Höhe & Breite
 
 # 1. Anzahl der Objekte festlegen
-# ToDo: Interaktive Eingabe der Counts
 
+# ToDo: Interaktive Eingabe der Counts
 
 player_count = 2
 enemy_count = 2
@@ -54,32 +55,31 @@ figure_sequence = []
 
 # 2. Über Height / Width das Spielfeld erstellen und initialisieren
 
-game_field = GameField(game_field_height,game_field_width)
-game_field.field_corners = camera_imgProcessor.clicked_points  # ToDo: Angeklickte Punkte merken und immer in Gameloop anwenden!
-game_field.initialize_GameField()
+game_field = GameField(game_field_height,game_field_width) 
+
+
 
 
 # 3. Player Figuren --> Schleife die durch player_count begrenzt ist
-# ToDo:
-#       a.	Erste Figur aufs Spielfeld stellen
-#       b.	Figur erkennen über Background-Subtraction
-#       c.	Position der Figur erkennen
-#       d.	Figur benennen z.B. erste Player Figur --> Player_1  bis Player_X
-#       e.	Type auf PLAYER stellen
-#       f.	Add_Figure()
-#       g.  Figur in Spielerreihenfolge aufnehmen
+
+
 
 for i in range(1,player_count+1):
-    figure_sequence.append(game_field.add_figure(f'Player_{i}',Figure_Type.PLAYER,(0,i),1))
+    # FIGUR DRAUFSTELLEN
+    # SCREENSHOT MIT FIGUR --> 
+    transformed_image2 = camera_imgTransformer.transform_image(camera_image_path)
+    cv2.imshow('Channel2',transformed_image2)
+    
+    # ToDo Max: PositionDetection(transformed_image1,transformed_image1,(50,40))
+    position = (0,0)   
+
+    figure_sequence.append(game_field.add_figure(f'Player_{i}',Figure_Type.PLAYER,position,1))
+    
+    # ToDo: WHile Schleife solange keine neuen Figuren draufgesetzt werden
 
 
-# 4.	Selbe Schleife für Gegner Figuren  Schleife mit Anzahl Gegner X
-#       a.	Erste Figur aufs Spielfeld stellen
-#       b.	Figur erkennen über Background-Subtraction
-#       c.	Position der Figur erkennen
-#       d.	Figur benennen z.B. erste Gegner Figur  Enemy_1  bis Enemy_X
-#       e.	Type auf PLAYER stellen
-#       f.	Add_Figure()
+# 4.	Selbe Schleife für Gegner Figuren --> Schleife mit Anzahl Gegner X
+
 for i in range(1,enemy_count+1):
     figure_sequence.append(game_field.add_figure('Enemy_{i}',Figure_Type.ENEMY,(10+i,9),1))
 
