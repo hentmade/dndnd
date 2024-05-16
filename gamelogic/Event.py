@@ -2,9 +2,13 @@ class Event:
     def __init__(self,position,size=1):
         self.position = position
         self.size=size
+        self.triggerd = False
+
 
     def trigger(self): 
-        print("Event triggered")
+        if not self.triggered:
+            print("Event triggered")
+            self.triggered=True
 
 
 class Trap(Event):
@@ -12,13 +16,17 @@ class Trap(Event):
         super().__init__(position,size)
 
     def trigger(self): 
-        print("Trap triggered!")
+        if not self.triggered:
+            print("Trap triggered")
+            self.triggered=True
 
 class Ambush(Event):
     def __init__(self,position,size):
         super().__init__(position,size)
 
     def trigger(self): 
-        print("Ambush triggered!")
+        if not self.triggered:
+            print("Ambush triggered")
+            self.triggered=True
 
 

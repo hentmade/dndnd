@@ -3,13 +3,16 @@ from Terrain import *
 from Figure import *
 from Item import *
 from Event import *
+from imageprocessing.ImageProcessor import *
 
 class GameField:
+    # ---------------------------------------- Field -------------------------------------------------
     def __init__(self, height, width):
         self.height = height
         self.width = width
         self.cells = [[Cell((x, y)) for y in range(height)] for x in range(width)]
         self.field_corners = []
+        self.overlay_imgs = []
 
     def initialize_GameField(self):
         for row in self.cells:
@@ -20,8 +23,7 @@ class GameField:
         x,y = position
         return (Cell)(self.cells[x][y])        
 
-    
-
+    # ---------------------------------------- Figure ------------------------------------------------
     def add_figure(self,name,type, position,size=1):
         x,y = position
         return (Cell)(self.cells[x][y]).add_figure(name,type,size)
@@ -29,32 +31,65 @@ class GameField:
     def move_figure(self,figure,start_position,end_position):
         (Figure)(figure).position = end_position
         x,y = start_position
-        (Cell)(self.cells[x][y]).figure = None
+        cell = (Cell)(self.cells[x][y])
+        cell.figure = None
         x,y = end_position
-        (Cell)(self.cells[x][y]).figure = figure    
-    
+        cell = (Cell)(self.cells[x][y])
+        cell.figure = figure 
+        if cell.event is not None:
+            self.trigger_event(end_position)
+        
     def remove_figure(self,position):
         x,y = position
         (Cell)(self.cells[x][y]).remove_figure(position)
 
+
+    # ------------------------------------------- Event -----------------------------------------------
     def add_event(self, type, position, size=1):
         x,y = position
         (Cell)(self.cells[x][y]).add_event(type,size)
 
-    def set_terrain(self, position, terrain_type):
+    def trigger_event(self,position):
         x,y = position
-        (Cell)(self.cells[x][y]).terrain = Terrain(terrain_type)
+        (Cell)(self.cells[x][y]).trigger_event()
 
-    
-    def add_object(self, position, obj_type):
+    def remove_event(self,position):
         x,y = position
-        (Cell)(self.cells[x][y]).obj = Object(obj_type)    
+        (Cell)(self.cells[x][y]).remove_figure(position)
 
+    # -------------------------------------------- Item ------------------------------------------------
+    # ToDo: Muss Item heißen!
+    def add_item(self, position, obj_type):
+        x,y = position
+        (Cell)(self.cells[x][y]).obj = Object(obj_type) 
+
+
+    # ---------------------------------------- Visualisation --------------------------------------------
     def set_visu_state(self, position, visu_state):
         x,y = position
         (Cell)(self.cells[x][y]).set_visu_state(visu_state)
 
-    def visualize_GameField(self):
+    def get_overlay_img(self):
+        for row in self.cells:
+            for cell in row:
+                self.overlay_imgs.append({"pfad": f"{cell.visu_img}", "position": cell.position})
+
+    def visualize_GameField(self,imageProcessor):
+        for overlay_info in self.overlay_imgs:
+            overlay_img = cv2.imread(overlay_info["pfad"])
+            # Die Größe des Overlay-Bildes erhalten
+            overlay_höhe, overlay_breite, _ = overlay_img.shape
+            # Position des Overlay-Bildes
+            x_offset, y_offset = overlay_info["position"]
+            background = (ImageProcessor)(imageProcessor).image
+
+            # Overlay-Bild auf dem Hintergrundbild platzieren
+            background[y_offset:y_offset+overlay_höhe, x_offset:x_offset+overlay_breite] = overlay_img
+
+        # Ergebnis anzeigen
+        cv2.imshow("Overlay-Ergebnis", background)
+
+    def visualize_GameField_Terminal(self):
         for row in self.cells:
             for cell in row:
                 if cell.figure is not None:
@@ -63,7 +98,12 @@ class GameField:
                     print(f"{cell.visu_state}",end=" ")
                 else:
                     print(".", end=" ")
-            print()       
+            print()   
+
+
+    def set_terrain(self, position, terrain_type):
+        x,y = position
+        (Cell)(self.cells[x][y]).terrain = Terrain(terrain_type)        
             
                 
 

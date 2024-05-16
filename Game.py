@@ -107,11 +107,7 @@ game_field.add_event("TRAP",(2,2),1)
 #       b.	Evtl. Events anzeigen
 
 # ToDo: VisuStates für Items und Events etc. anlegen
-game_field.set_visu_state((0,0),VisuState.FIRE)
-game_field.set_visu_state((5,5),VisuState.WATER)
-game_field.set_visu_state((0,10),VisuState.EARTH)
-
-
+game_field.set_visu_state((10,10),VisuState_Img.TRAP)
 game_field.visualize_GameField() # GameField visualisieren in Terminal
 
 
@@ -150,7 +146,7 @@ while(not finished):
     #       --> Funktion RefreshVisuStates(): Events etc. müssen die VisuStates verändern! 
     #       --> Visualisierung des Events auf Cell projizieren
     
-    game_field.set_visu_state((0,10),VisuState.EARTH)
+    game_field.set_visu_state((8,10),VisuState_Img.TRAP)
     game_field.visualize_GameField() # GameField visualisieren in Terminal
 
     # 7.	Next Player() 
