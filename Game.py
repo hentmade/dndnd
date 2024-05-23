@@ -9,22 +9,24 @@ import pyautogui
 import mouse
 import mss
 
-def place_figures(figure_type):
+
+region = None
+
+def place_figures(figure_type, region=None):
     save_path="Assets\\map_with_figure_screenshot.png"
     i = 0
-    while True:
+    while True:        
         answer = input("Möchtest du neue Figuren auf das Brett stellen? (J/N): ").strip().upper()
         if answer == "N":
-            print("Das Programm endet.")
             break
         elif answer == "J":
-            region = take_screenshot(without_figure_image_path)
+            region = take_screenshot(without_figure_image_path,region)
             transformed_map_without_image = camera_imgTransformer.transform_image(without_figure_image_path)
             cv2.imshow('CameraFigure1',transformed_map_without_image)
             cv2.waitKey()
             print("Stelle eine neue Figur aufs Spielfeld und bestätige mit ENTER.")
             input()
-            take_screenshot(with_figure_image_path,region)
+            region = take_screenshot(with_figure_image_path,region)
             transformed_map_with_image = camera_imgTransformer.transform_image(with_figure_image_path)
             cv2.imshow('CameraFigure2',transformed_map_with_image)
             cv2.waitKey()
@@ -36,13 +38,15 @@ def place_figures(figure_type):
         else:
             print("Ungültige Eingabe. Bitte gib 'J' für Ja oder 'N' für Nein ein.")
 
+    return region
+
 
 def take_screenshot(save_path="Assets\\map_screenshot.png", region=None):
     if region is None:
-        print("Wähle den oberen linken Punkt des Kamera-Bildes.")
+        print("Bitte wähle den oberen linken Punkt des Kamera-Bildes OHNE Figur.")
         x1, y1 = get_click_position()
         print(f"Erster Punkt gewählt: ({x1}, {y1})")
-        print("Wähle den unteren rechten Punkt des Kamera-Bildes.")
+        print("Wähle den unteren rechten Punkt des Kamera-Bildes OHNE Figur.")
         x2, y2 = get_click_position()
         print(f"Zweiter Punkt gewählt: ({x2}, {y2})")
         left = min(x1, x2)
@@ -99,7 +103,7 @@ beamer_imgProcessor.resize_image()
 # Bild anzeigen in Window Main
 
 
-print("Ready to Start?")
+print("---- PRESS ENTER TO START ----")
 input()
 
 beamer_imgProcessor.display_image("Map")
@@ -133,10 +137,10 @@ figure_sequence = []
 game_field = GameField(game_field_height,game_field_width) 
 
 # 3. Player Figuren placen
-place_figures(Figure_Type.PLAYER)
+region = place_figures(Figure_Type.PLAYER)
 
 # 4. Enemy Figuren placen
-place_figures(Figure_Type.ENEMY)
+region = place_figures(Figure_Type.ENEMY,region)
 
 # 3.    Player Figuren anlegen
 # for i in range(1,player_count+1):      
@@ -177,7 +181,7 @@ selected_figure = 0
 while(not finished):
     # 1.	Figur die dran ist auswählen
     # Nach der Reihenfolge Player_1 bis Player_X, danach Gegner_1 bis Gegner_X
-    selected_figure = figure_sequence[round % all_figures_count]
+    selected_figure = figure_sequence[round % (all_figures_count+1)]
     
 
     # 2.	Start- und Endposition der Figur einlesen
@@ -185,9 +189,11 @@ while(not finished):
     # ToDo: Die Start-Positionen müssen später über Kamera eingelesen werden
     print(f"\nStartposition {selected_figure.id} einlesen... ")
     input() 
+    region = take_screenshot(without_figure_image_path,region)
     print(f"Aktuelle Position: {selected_figure.position}")
     print("Figur umstellen und mit ENTER bestätigen!")
     input()
+    region = take_screenshot(without_figure_image_path,region)    
     x,y = start_pos
     end_pos = (x + 1 , y + 1) 
     # ToDo: Die End-Positionen müssen später über Kamera eingelesen werden
