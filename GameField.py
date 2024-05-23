@@ -3,7 +3,7 @@ from Terrain import *
 from Figure import *
 from Item import *
 from Event import *
-from imageprocessing.ImageProcessor import *
+from ImageProcessor import *
 
 class GameField:
     # ---------------------------------------- Field -------------------------------------------------
@@ -21,53 +21,46 @@ class GameField:
                 
     def get_cell(self,position):
         x,y = position
-        return (Cell)(self.cells[x][y])        
+        return self.cells[x][y]       
 
     # ---------------------------------------- Figure ------------------------------------------------
     def add_figure(self,name,type, position,size=1):
-        x,y = position
-        return (Cell)(self.cells[x][y]).add_figure(name,type,size)
+        return self.get_cell(position).add_figure(name,type,size)
+        #x,y = position
+        #return (Cell)(self.cells[x][y]).add_figure(name,type,size)
     
     def move_figure(self,figure,start_position,end_position):
-        (Figure)(figure).position = end_position
-        x,y = start_position
-        cell = (Cell)(self.cells[x][y])
-        cell.figure = None
-        x,y = end_position
-        cell = (Cell)(self.cells[x][y])
-        cell.figure = figure 
-        if cell.event is not None:
+        figure.position = end_position
+        start_cell = self.get_cell(start_position)
+        end_cell = self.get_cell(end_position)
+        start_cell.figure = None
+        end_cell.figure = figure 
+        if end_cell.event is not None:
             self.trigger_event(end_position)
         
     def remove_figure(self,position):
-        x,y = position
-        (Cell)(self.cells[x][y]).remove_figure(position)
+        self.get_cell(position).remove_figure(position)
 
 
     # ------------------------------------------- Event -----------------------------------------------
     def add_event(self, type, position, size=1):
-        x,y = position
-        (Cell)(self.cells[x][y]).add_event(type,size)
+        self.get_cell(position).add_event(type,size)
 
     def trigger_event(self,position):
-        x,y = position
-        (Cell)(self.cells[x][y]).trigger_event()
+        self.get_cell(position).trigger_event()
 
     def remove_event(self,position):
-        x,y = position
-        (Cell)(self.cells[x][y]).remove_figure(position)
+        self.get_cell(position).remove_event(position)
 
     # -------------------------------------------- Item ------------------------------------------------
-    # ToDo: Muss Item heißen!
+    # ToDo: Muss Item heißen // Item noch nicht implementiert
     def add_item(self, position, obj_type):
-        x,y = position
-        (Cell)(self.cells[x][y]).obj = Object(obj_type) 
+        self.get_cell(position).obj = Object(obj_type) 
 
 
     # ---------------------------------------- Visualisation --------------------------------------------
     def set_visu_state(self, position, visu_state):
-        x,y = position
-        (Cell)(self.cells[x][y]).set_visu_state(visu_state)
+        self.get_cell(position).set_visu_state(visu_state)
 
     def get_overlay_img(self):
         for row in self.cells:
@@ -101,9 +94,9 @@ class GameField:
             print()   
 
 
+# ToDo Terrain nicht implementiert
     def set_terrain(self, position, terrain_type):
-        x,y = position
-        (Cell)(self.cells[x][y]).terrain = Terrain(terrain_type)        
+        self.get_cell(position).terrain = Terrain(terrain_type)        
             
                 
 

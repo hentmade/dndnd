@@ -58,6 +58,7 @@ class Cell:
     def trigger_event(self):
         if self.event is not None:
             self.event.trigger
+            self.remove_event
 
 
         
