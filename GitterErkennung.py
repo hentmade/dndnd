@@ -28,6 +28,13 @@ class GitterErkennung:
 
             image = cv2.rectangle(image, start_point, end_point, color, thickness) 
             
+            height, width = image.shape[:2] 
+
+            height = height - (height/squareSize)*1
+            width = width - (width/squareSize)*1
+            dimensions = [math.floor(height/squareSize),math.floor(width/squareSize)]
+            print("Height, Width", height, width)
+            print("Dimensions X,Y",dimensions[0],dimensions[1])
             cv2.imshow("Square", image)
             cv2.waitKey(0)
             """  binImage = binarize(image)
