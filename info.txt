@@ -1,0 +1,6 @@
+map is 40 x 50
+resolution is 2048 x 2560
+
+one field should be 51.2 px x 51.2 px
+
+reduce xy dimension by number of xy contours ?
