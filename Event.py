@@ -2,7 +2,7 @@ class Event:
     def __init__(self,position,size=1):
         self.position = position
         self.size=size
-        self.triggerd = False
+        self.triggered = False
 
 
     def trigger(self): 
@@ -28,5 +28,4 @@ class Ambush(Event):
         if not self.triggered:
             print("Ambush triggered")
             self.triggered=True
-
 

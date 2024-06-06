@@ -25,9 +25,9 @@ class ImageTransformer:
         #self.image = img_copy  # Update the original image with the modified copy
         cv2.imshow('Transformed Image', img_copy)
 
-    def transform_image(self,image_path): 
+    def transform_image(self,image): 
         # Show image and get the clicked points for transformation
-        image = cv2.imread(image_path)
+        
         if not self.clicked_points:
             cv2.imshow('Transformed Image', image)
             cv2.setMouseCallback('Transformed Image', self.click_event, param=image)

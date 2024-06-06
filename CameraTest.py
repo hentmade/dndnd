@@ -1,5 +1,5 @@
 import cv2
-from ImageProcessor import *
+from Map import *
 import pyautogui
 
 from ImageTransformer import ImageTransformer

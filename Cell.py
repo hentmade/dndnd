@@ -6,36 +6,21 @@ import cv2
 
 
 class VisuState(Enum):
-    EARTH = 'e'
-    WATER = 'w'
-    FIRE = 'f'
-    MOUNTAIN = 'm'   
-
-
-class VisuState_Img(Enum):
     TRAP = 'Assets\\overlay.png'
+    AMBUSH = 'Assets\\overlay.png'
 
 
 class Cell:
     def __init__(self, position):
         self.position = position
         self.figure = None
-        self.obj = None
         self.event = None
-        self.terrain = None
         self.visu_state = None
-        self.visu_img = None
 
-    def set_visu_state(self,state):
+    def set_visu_state(self, state):
         if state is not None:
-            self.visu_state = VisuState(state).value
-        else:
-            self.visu_state=None
-
-    def set_visu_img(self, state):
-        if state is not None:
-            self.visu_img = VisuState_Img(state).value
-            #self.visu_img = cv2.imread(visu_img_path)
+            if self.event.triggered:
+                self.visu_state = VisuState(state).value
         else:
             self.visu_state=None
 
@@ -48,9 +33,10 @@ class Cell:
 
     def add_event(self,type,size=1):
         if(type =="TRAP"):
-            self.event = Trap(type,self.position,size)
+            self.event = Trap(self.position,size)
+            self.visu_state = VisuState(type).value
         elif(type =="AMBUSH"): 
-            self.event = Ambush(type,self.position,size)
+            self.event = Ambush(self.position,size)
 
     def remove_event(self):
         self.event = None

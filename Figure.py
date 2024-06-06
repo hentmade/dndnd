@@ -3,10 +3,10 @@ from enum import Enum
 from Cell import *
 
 class Figure_Type(Enum):
-    PLAYER = 'P'
-    ALLY = 'A'
-    ENEMY = 'E'
-    NPC = 'N'
+    PLAYER = 'Player'
+    ALLY = 'Ally'
+    ENEMY = 'Enemy'
+    NPC = 'NPC'
 
 
 class Figure(Object):

@@ -3,7 +3,7 @@ from Terrain import *
 from Figure import *
 from Item import *
 from Event import *
-from ImageProcessor import *
+from Map import *
 
 class GameField:
     # ---------------------------------------- Field -------------------------------------------------
@@ -12,7 +12,7 @@ class GameField:
         self.width = width
         self.cells = [[Cell((x, y)) for y in range(height)] for x in range(width)]
         self.field_corners = []
-        self.overlay_imgs = []
+        self.overlay = None
 
     def initialize_GameField(self):
         for row in self.cells:
@@ -67,20 +67,50 @@ class GameField:
             for cell in row:
                 self.overlay_imgs.append({"pfad": f"{cell.visu_img}", "position": cell.position})
 
-    def visualize_GameField(self,imageProcessor):
-        for overlay_info in self.overlay_imgs:
-            overlay_img = cv2.imread(overlay_info["pfad"])
-            # Die Größe des Overlay-Bildes erhalten
-            overlay_höhe, overlay_breite, _ = overlay_img.shape
-            # Position des Overlay-Bildes
-            x_offset, y_offset = overlay_info["position"]
-            background = (ImageProcessor)(imageProcessor).image
+    # def visualize_GameField(self):
+    #     if self.overlay is None:
+    #         self.overlay = Overlay(background)            
+    #     for overlay_info in self.overlay_imgs:
+    #         overlay_img = cv2.imread(overlay_info["pfad"])
+    #         # Die Größe des Overlay-Bildes erhalten
+    #         overlay_höhe, overlay_breite, _ = overlay_img.shape
+    #         # Position des Overlay-Bildes
+    #         x_offset, y_offset = overlay_info["position"]
+    #         background = (ImageProcessor)(imageProcessor).image
 
-            # Overlay-Bild auf dem Hintergrundbild platzieren
-            background[y_offset:y_offset+overlay_höhe, x_offset:x_offset+overlay_breite] = overlay_img
+    #         # Overlay-Bild auf dem Hintergrundbild platzieren
+    #         background[y_offset:y_offset+overlay_höhe, x_offset:x_offset+overlay_breite] = overlay_img
 
-        # Ergebnis anzeigen
-        cv2.imshow("Overlay-Ergebnis", background)
+    #     # Ergebnis anzeigen
+    #     cv2.imshow("Overlay-Ergebnis", background)
+
+
+    #                         # background_path = "Assets\\encounter.webp"
+    #                         # image_path = "Assets\\overlay.png"
+
+    #                         # background = cv2.imread(background_path)
+
+    #                         # cv2.imshow("Initial", background)
+
+    #                         # overlay = Overlay(background_path)
+
+    #                         # cv2.waitKey(0)
+    #                         # cv2.destroyAllWindows()
+
+    #                         # for i in range(1,5):    
+
+    #                         #     position = (100+5*i,50+5*i) # Hier muss die Umrechnung Cell-Position --> Image Position stattfinden
+
+    #                         #     overlay.addImage(image_path,position)
+
+    #                         #     background_with_overlay = overlay.putOverlay()
+
+    #                         #     cv2.imshow("Overlay-Ergebnis", background_with_overlay)
+
+    #                         #     cv2.waitKey(0)
+
+    #                         # cv2.destroyAllWindows()
+
 
     def visualize_GameField_Terminal(self):
         for row in self.cells:
@@ -91,12 +121,7 @@ class GameField:
                     print(f"{cell.visu_state}",end=" ")
                 else:
                     print(".", end=" ")
-            print()   
-
-
-# ToDo Terrain nicht implementiert
-    def set_terrain(self, position, terrain_type):
-        self.get_cell(position).terrain = Terrain(terrain_type)        
+            print()        
             
                 
 

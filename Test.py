@@ -3,7 +3,7 @@ from Cell import *
 from Figure import *
 from Event import *
 from Item import *
-from ImageProcessor import *
+from Map import *
 from ImageTransformer import *
 
 
