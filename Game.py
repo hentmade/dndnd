@@ -41,16 +41,16 @@ def place_figures(figure_type, region: Optional[dict] = None) -> dict:
         if answer == "N":
             break
         elif answer == "J":
-            cv2.imshow('Screenshot Previous', screenshot_prev)
-            cv2.waitKey(0)
+            #cv2.imshow('Screenshot Previous', screenshot_prev)
+            #cv2.waitKey(0)
             print(f"Stelle eine neue {figure_type.value}-Figur aufs Spielfeld und bestätige mit ENTER.")
             input()
             
             region = take_screenshot(screenshot_next_path, region)
             screenshot_next = cv2.imread(screenshot_next_path)
             screenshot_next = image_transformer.transform_image(screenshot_next)
-            cv2.imshow('Screenshot Next', screenshot_next)
-            cv2.waitKey(0)
+            #cv2.imshow('Screenshot Next', screenshot_next)
+            #cv2.waitKey(0)
             
             position = position_detector.detectPosition(screenshot_next, screenshot_prev)
             print(f"Position: {position}")

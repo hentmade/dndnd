@@ -24,11 +24,11 @@ class PositionDetection:
       
       # only for testing:
       #difference_img = GridPlotter.plot_to_img(50, 40, difference_img)
-      cv2.line(difference_img, (centerX-5, centerY), (centerX+5, centerY), (255,0,255), 1)
-      cv2.line(difference_img, (centerX, centerY-5), (centerX, centerY+5), (255,0,255), 1)
+      #cv2.line(difference_img, (centerX-5, centerY), (centerX+5, centerY), (255,0,255), 1)
+      """  cv2.line(difference_img, (centerX, centerY-5), (centerX, centerY+5), (255,0,255), 1)
       cv2.imshow("output", difference_img)
       cv2.waitKey(0)
-      cv2.imwrite("Assets\\test_PositionDetection.jpg", difference_img)
+      cv2.imwrite("Assets\\test_PositionDetection.jpg", difference_img) """
       #print(difference_img.shape)
       #print(centerX, centerY)
       #print(momentsDetector.getM00()/255)

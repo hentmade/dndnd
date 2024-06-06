@@ -26,10 +26,11 @@ class Map:
 
     def resize_map(self, width=None, height=None):
         # Scale image to needed resolution
-        if width is None or height is None:
-            width, height = pyautogui.size()
+        #if width is None or height is None:
+            #width, height = pyautogui.size()
+            #width, height = 1920,1080
         
-        self.background = cv2.resize(self.background, (width, height))
+        self.background = cv2.resize(self.background, (1350,1080))
         return self.background
     
 
