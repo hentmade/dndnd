@@ -8,12 +8,13 @@ from Item import *
 from Map import *
 from PositionDetection import *
 from ImageTransformer import *
+from GitterErkennung import *
 import mouse
 import mss
 import os
 
 # --------------------------------------------------------------- BILDPFADE ---------------------------------------------------------------#
-beamer_image_path = "Assets\\encounter.webp"
+map_disk_path = "Assets\\encounter.webp"
 screenshot_prev_path = "Assets\\map_screenshot_prev.png"
 screenshot_next_path = "Assets\\map_screenshot_next.png"
 overlay_trap = "Assets\\overlay_trap.png"
@@ -111,7 +112,7 @@ def get_click_position() -> Tuple[int, int]:
     return pos
 
 # --------------------------------------------------------------- VORBEREITUNG ---------------------------------------------------------------#
-map = Map(beamer_image_path)
+map = Map(map_disk_path)
 image_transformer = ImageTransformer()
 
 map.rotate_map(90)
@@ -120,7 +121,11 @@ map.display_map("Map")
 cv2.waitKey(0)
 
 # ToDo: Hier muss die GITTERERKENNUNG rein und die Zellen in x und y Richtung liefern
+#add debug = true to get debugging output
+instance_Gitter_Erkennung =  GitterErkennung( cv2.imread(map_disk_path),debug=False)
 
+game_field_height,game_field_width = instance_Gitter_Erkennung.return_dimensions
+print("dimensions Game.py: ",game_field_height,game_field_width)
 # ------------------------------------------------------------ SPIELFELD INITIALISIEREN -------------------------------------------------------#
 # 1.    Anzahl der Objekte festlegen
 game_field_height = 40 
