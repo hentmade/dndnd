@@ -4,4 +4,4 @@ math
 collections
 mouse
 mss
-os
+tkinter
