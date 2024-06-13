@@ -1,1 +1,5 @@
+<<<<<<< HEAD
 test etst test 
+=======
+use dictionarys / hashmap
+>>>>>>> origin/imageTransformation
