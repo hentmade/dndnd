@@ -1,0 +1,7 @@
+cv2 
+numpy 
+math
+collections
+mouse
+mss
+os

@@ -4,13 +4,17 @@ import numpy as np
 import math
 import collections
 
-class GitterErkennung:
-    def __init__(self, list, image):
-            self.list = list
-            self.image = image    
 
-            lines = test(image)   
-            squareSize = sortLinesXY(lines)
+class GitterErkennung:
+
+    def __init__(self, image, debug=False):
+            self.image = image    
+            self.height = 0
+            self.width = 0
+            self.dimensions = []
+
+            lines = test(image, debug)   
+            squareSize = sortLinesXY(lines, debug)
             # Black color in BGR 
             color = (0, 0, 0) 
    
@@ -32,40 +36,16 @@ class GitterErkennung:
 
             height = height - (height/squareSize)*1
             width = width - (width/squareSize)*1
-            dimensions = [math.floor(height/squareSize),math.floor(width/squareSize)]
-            print("Height, Width", height, width)
-            print("Dimensions X,Y",dimensions[0],dimensions[1])
-            cv2.imshow("Square", image)
-            cv2.waitKey(0)
-            """  binImage = binarize(image)
-            cv2.imshow("binary", binImage)
-            cv2.waitKey(0)
-
-            contours = rectDetection(binImage)
-
-            img = image
-            for cnt in contours:
-                x1,y1 = cnt[0][0]
-                approx = cv2.approxPolyDP(cnt, 0.01*cv2.arcLength(cnt, True), True)
-                if len(approx) == 4:
-                    x, y, w, h = cv2.boundingRect(cnt)  
-                    ratio = float(w)/h
-                    if ratio >= 0.9 and ratio <= 1.1:
-                        img = cv2.drawContours(img, [cnt], -1, (0,255,255), 3)
-                        cv2.putText(img, 'Square', (x1, y1), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 0), 2)
-                    else:
-                        cv2.putText(img, 'Rectangle', (x1, y1), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
-                        img = cv2.drawContours(img, [cnt], -1, (0,255,0), 3)
-            
-            img = cv2.resize(img,(0, 0), fx = 0.4, fy = 0.4)
-            cv2.imshow("Shapes", img)
-            cv2.waitKey(0) """
-"""             cv2.imshow("binarized", image)
-            cv2.waitKey(0) 
-"""
-            #img = cv2.cvtColor(image,cv2.COLOR_GRAY2RGB)
-           
-
+            self.dimensions = [math.floor(height/squareSize),math.floor(width/squareSize)]
+            if debug:
+                print("Height, Width", height, width)
+                print("Dimensions X,Y",self.dimensions[0],self.dimensions[1])
+                cv2.imshow("Square", image)
+                cv2.waitKey(0)
+   
+    @property
+    def return_dimensions(self):
+        return self.dimensions[0], self.dimensions[1]
 
 def calculate_distance_occurrences(arr):
     # Calculate distances between consecutive elements
@@ -98,7 +78,7 @@ def print_first_value_of_last_tuple(tuples_list):
     print(first_value)
     return first_value
 
-def sortLinesXY(lines):
+def sortLinesXY(lines, debug):
     xLines = []
     yLines = []
     for i in range(0, len(lines)):
@@ -111,33 +91,36 @@ def sortLinesXY(lines):
             #cv2.line(lines, (l[0], l[1]), (l[2], l[3]), (0,0,255), 3, cv2.LINE_AA)
     xLines.sort()
     yLines.sort()
-    print(len(xLines))
-    print(len(yLines))
-    print("X Lines")
-    print (str(xLines)[1:-1] )
-    print("Y Lines")
-    print (str(yLines)[1:-1] )
+    if debug:
+        print(len(xLines))
+        print(len(yLines))
+        print("X Lines")
+        print (str(xLines)[1:-1] )
+        print("Y Lines")
+        print (str(yLines)[1:-1] )
 
     xLinesSorted = calculate_distance_occurrences(xLines)
     yLinesSorted = calculate_distance_occurrences(yLines)
-    print("\n")
-    print(xLinesSorted)
-    print("\n")
-    print(yLinesSorted)
+    if debug:
+        print("\n")
+        print(xLinesSorted)
+        print("\n")
+        print(yLinesSorted)
     
     xLinesSorted  = sort_tuples_by_first_element(xLinesSorted)
     yLinesSorted = sort_tuples_by_first_element(yLinesSorted)
-    print("\n")
-    print(xLinesSorted)
-    print("\n")
-    print(yLinesSorted)
+    if debug:
+        print("\n")
+        print(xLinesSorted)
+        print("\n")
+        print(yLinesSorted)
 
-    print_first_value_of_last_tuple(xLinesSorted)
+        print_first_value_of_last_tuple(xLinesSorted)
     
     return print_first_value_of_last_tuple(yLinesSorted)
 
 
-def test(src):
+def test(src,debug):
      ## [edge_detection]
     # Edge detection
     dst = cv2.Canny(src, 50, 200, None, 3)
@@ -146,27 +129,6 @@ def test(src):
     # Copy edges to the images that will display the results in BGR
     cdst = cv2.cvtColor(dst, cv2.COLOR_GRAY2BGR)
     cdstP = np.copy(cdst)
-    """ 
-    ## [hough_lines]
-    #  Standard Hough Line Transform
-    lines = cv2.HoughLines(dst, 1, np.pi / 180, 150, None, 0, 0)
-    ## [hough_lines]
-    ## [draw_lines]
-    # Draw the lines
-    if lines is not None:
-        for i in range(0, len(lines)):
-            rho = lines[i][0][0]
-            theta = lines[i][0][1]
-            a = math.cos(theta)
-            b = math.sin(theta)
-            x0 = a * rho
-            y0 = b * rho
-            pt1 = (int(x0 + 1000*(-b)), int(y0 + 1000*(a)))
-            pt2 = (int(x0 - 1000*(-b)), int(y0 - 1000*(a)))
-
-            cv2.line(cdst, pt1, pt2, (0,0,255), 3, cv2.LINE_AA)
-    ## [draw_lines]
- """
     ## [hough_lines_p]
     # Probabilistic Line Transform
     linesP = cv2.HoughLinesP(dst, 1, np.pi / 180, 50, None, 50, 10)
@@ -181,14 +143,15 @@ def test(src):
     ## [draw_lines_p]
     ## [imshow]
     # Show results
-    print(np.matrix(linesP))
-    cv2.imshow("Source", src)
-    #cv2.imshow("Detected Lines (in red) - Standard Hough Line Transform", cdst)
-    cv2.imshow("Detected Lines (in red) - Probabilistic Line Transform", cdstP)
-    ## [imshow]
-    ## [exit]
-    # Wait and Exit
-    cv2.waitKey()
+    if debug:
+        print(np.matrix(linesP))
+        cv2.imshow("Source", src)
+        #cv2.imshow("Detected Lines (in red) - Standard Hough Line Transform", cdst)
+        cv2.imshow("Detected Lines (in red) - Probabilistic Line Transform", cdstP)
+        ## [imshow]
+        ## [exit]
+        # Wait and Exit
+        cv2.waitKey()
     return linesP
     ## [exit]
 

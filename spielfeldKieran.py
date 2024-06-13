@@ -1,4 +1,4 @@
-from Feld import *
+#from Feld import *
 from GitterErkennung import *
 import cv2 
 

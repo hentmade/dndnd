@@ -17,6 +17,8 @@ enemy_count = 2
 event_count = 2
 item_count = 2
 figure_sequence = []
+#add gitter erkennung
+
 game_field = GameField(game_field_height,game_field_width)
 
 
