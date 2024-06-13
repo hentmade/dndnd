@@ -7,13 +7,15 @@ from Map import *
 
 class GameField:
     # ---------------------------------------- Field -------------------------------------------------
-    def __init__(self, height, width):
+    def __init__(self, height, width,map):
         self.height = height
         self.width = width
+        self.map = map
         self.cells = [[Cell((x, y)) for y in range(height)] for x in range(width)]
+        self.initialize_GameField
         self.field_corners = []
         self.overlay = None
-
+    
     def initialize_GameField(self):
         for row in self.cells:
             for cell in row:
@@ -26,8 +28,6 @@ class GameField:
     # ---------------------------------------- Figure ------------------------------------------------
     def add_figure(self,name,type, position,size=1):
         return self.get_cell(position).add_figure(name,type,size)
-        #x,y = position
-        #return (Cell)(self.cells[x][y]).add_figure(name,type,size)
     
     def move_figure(self,figure,start_position,end_position):
         figure.position = end_position
@@ -37,6 +37,7 @@ class GameField:
         end_cell.figure = figure 
         if end_cell.event is not None:
             self.trigger_event(end_position)
+            self.set_visu_state(end_position, end_cell.event.type)
         
     def remove_figure(self,position):
         self.get_cell(position).remove_figure(position)
@@ -50,7 +51,7 @@ class GameField:
         self.get_cell(position).trigger_event()
 
     def remove_event(self,position):
-        self.get_cell(position).remove_event(position)
+        self.get_cell(position).remove_event()
 
     # -------------------------------------------- Item ------------------------------------------------
     # ToDo: Muss Item heißen // Item noch nicht implementiert
@@ -65,7 +66,7 @@ class GameField:
     def get_overlay_img(self):
         for row in self.cells:
             for cell in row:
-                self.overlay_imgs.append({"pfad": f"{cell.visu_img}", "position": cell.position})
+                self.overlay_imgs.append({"pfad": f"{cell.visu_state}", "position": cell.position})
 
     # def visualize_GameField(self):
     #     if self.overlay is None:
@@ -112,17 +113,6 @@ class GameField:
     #                         # cv2.destroyAllWindows()
 
 
-    def visualize_GameField_Terminal(self):
-        for row in self.cells:
-            for cell in row:
-                if cell.figure is not None:
-                    print(f"{cell.figure.type.value}",end=" ")
-                elif cell.visu_state is not None:                    
-                    print(f"{cell.visu_state}",end=" ")
-                else:
-                    print(".", end=" ")
-            print()        
-            
                 
 
 
