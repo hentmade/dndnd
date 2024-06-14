@@ -3,7 +3,7 @@ from typing import Optional, Dict
 from GameField import *
 from Cell import *
 from Figure import *
-from Event import *
+from Event import Event
 from Item import *
 from Map import *
 from PositionDetection import *
@@ -46,7 +46,8 @@ print("Figuren hinzugefügt")
 # ToDo: Event Klasse nochmal neu überdenken
 # ToDo: VisuStates der Events anlegen
 
-game_field.add_event(Event_Type.TRAP,(2,2),1)
+game_field.add_event(Event_Type.Trap,(6,6),1)
+game_field.add_event(Event_Type.Fire,(5,5),1)
 print("Events hinzugefügt")
 
 # 6.	Items verteilen
@@ -63,32 +64,15 @@ if all_figures_count:
         selected_figure = figure_sequence[round % all_figures_count]
         start_pos = selected_figure.position  
         print(f"Aktuelle Position: {selected_figure.position}")
-        end_pos = (2,2)
-        game_field.move_figure(selected_figure,start_pos,end_pos)
-    
+        map.figure_radius(start_pos,selected_figure.size)
+
+
+        end_pos = (5+round,5+round)
+        game_field.move_figure(selected_figure,start_pos,end_pos)   
+        map.remove_overlay("Assets\\player_radius.png",start_pos,selected_figure.size*5)      
             
         print(f"Figur {selected_figure.id} wurde bewegt. Neue Position: {selected_figure.position}")
-        print("Ready Next Player... (ENTER)")
-        input()
-        
 
-        # 5.	Aktionen ausführen
-        # ToDo: Item-Klasse anpassen
-        # ToDo - Test: Figur vor Item stellen und Item auslösen bei Klick
-
-        # 6.	VisuStates() neu setzen und anzeigen
-        # ToDo: Nachdem Figuren bewegt und Events / Items getriggert wurden 
-        #       --> VisuState der Zelle auslesen und anzeigen
-        #       --> VisuState der Zelle muss noch festgelegt werden z.B. Event / Item wird als Overlay drübergelegt
-        # ToDo: VisuStates für Items und Events etc. anlegen
-
-        # 7.    Game Field neu zeichnen + Next Player
-        # ToDo: VisuStates der betroffenen Zellen neu auslesen und den entsprechenden Overlay dem Overlay-Array hinzufügen
-        #       --> Nach Vorbild OverlayPicture.py
-        # ToDo: Spielende festlegen
-        # ToDo: Overlay müssen auf eine Cell gefittet werden -->  map.add_overlay(cell.visuState,(100,100))
-
-        cv2.destroyWindow("Map")
         map.display_map("Map")
         cv2.waitKey(0)
         round += 1

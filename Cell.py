@@ -1,12 +1,12 @@
 from Figure import *
 from enum import Enum
 from Event import *
-from Figure import Figure
+from Figure import *
 import cv2
 
 
 class VisuState(Enum):
-    TRAP = 'Assets\\overlay.png'
+    TRAP = 'Assets\\overlay_trap.png'
     AMBUSH = 'Assets\\overlay.png'
 
 
@@ -33,14 +33,12 @@ class Cell:
 
     def trigger_event(self):
         if self.event is not None:
-            self.event.trigger            
-            self.remove_event
-            
+            self.event.trigger_event()                        
 
     def set_visu_state(self, state):
         if state is not None:
             if self.event.triggered:
-                self.visu_state = state.value # Was steht in state?
+                self.visu_state = state.value
         else: 
             self.visu_state=None
 
