@@ -19,6 +19,27 @@ Dialog Box new_figure
 
 Additional
     imageDisplay show_populated_map
+
+
+Views
+
+Initialisierung: Wir brauchen ein Fenster wo die Initialisierung stattfindet. Darunter fällt alles was bisher vor der GameLoop passiert. 
+
+Hinzufügen der Spielerfiguren
+Hinzufügen der Gegnerfiguren 
+--> optional mit Beachtung der Reihenfolge, sprich die Figuren sind in der Reihenfolge dran die man ihnen zuschreibt (nennt sich in DND Initiative, die wird am Anfang ausgewürfelt mit einem 20-seitigen Würfel, wenn man die gewürfelte Zahl irgendwo eintragen kann und er daraufhin beginnend mit dem höchsten Würfelergebnis die Reihenfolge bildet wäre das ziemlich nice)
+Hinzufügen der Events (Trap, Fire bisher nur implementiert) mit Positionsangabe (x,y)
+Hinzufügen der Items mit Positionsangabe.
+Button "Weiter" um eine View weiterzukommen und die Initialisierung abzuschließen
+GameLoop: Hier sollte der Dungeon Master die Konsolenausgabe einfach sehen können bzw. einfach ein Log wo das Auslösen von Events hinterlegt ist und man die Spielfiguren weiterschalten kann / Runde beenden.
+
+Ausgabe des Spielgeschehens (Konsolenausgabe)
+Button zum Durchschalten der Figuren
+Optional: Anzeige der Map für DM
+Optional: Anzeige der Figurenreihenfolge
+Optional: Hinzufügen von Gegnereinheiten
+
+
  """
 #Create an instance of Tkinter Frame
 win = Tk()

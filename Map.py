@@ -1,6 +1,6 @@
 import cv2
 import numpy as np
-import pyautogui
+
 
 class Map:
     def __init__(self, image_path):

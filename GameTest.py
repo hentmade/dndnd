@@ -9,9 +9,6 @@ from Map import *
 from PositionDetection import *
 from ImageTransformer import *
 from GitterErkennung import *
-import mouse
-import mss
-import os
 
 # --------------------------------------------------------------- BILDPFADE ---------------------------------------------------------------#
 map_disk_path = "Assets\\encounter.webp"
