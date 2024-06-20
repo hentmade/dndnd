@@ -104,9 +104,6 @@ class Application(tk.Tk):
         rounds_to_skip = self.rounds_var.get()
         print(f"Skipped {rounds_to_skip} rounds")
     
-    def add_new_figures(self):
-        print("New Figures Added")
-
     def show_popup(self):
         popup = tk.Toplevel(self)
         popup.title("StartInit Popup")
