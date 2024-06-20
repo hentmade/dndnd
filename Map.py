@@ -28,7 +28,7 @@ class Map:
 
     def resize_map(self, width=None, height=None):
         #ToDo: Width und Height der Map müssen noch richtig erkannt und skaliert werden für die Anzeige        
-        self.background = cv2.resize(self.background, (1350,1080))
+        self.background = cv2.resize(self.background, (950,760))
         return self.background
     
 
