@@ -32,15 +32,22 @@ Additional
     DM text Log
     imageDisplay show_populated_map
  """
+
 import tkinter as tk
 from tkinter import ttk
 
 class Application(tk.Tk):
-    def __init__(self):
+    X_POS_MIN = 0
+    X_POS_MAX = 100
+    Y_POS_MIN = 0
+    Y_POS_MAX = 100
+
+    def __init__(self, X_POS_MAX, Y_POS_MAX):
         super().__init__()
-        
+        self.X_POS_MAX = X_POS_MAX
+        self.Y_POS_MAX = Y_POS_MAX
         self.title("GUI Application")
-        self.geometry("400x400")
+        self.geometry("400x500")
         
         self.create_widgets()
         
@@ -66,7 +73,7 @@ class Application(tk.Tk):
         
         self.rounds_var = tk.IntVar(value=1)
         self.skip_rounds_dropdown = ttk.Combobox(self.skip_rounds_frame, textvariable=self.rounds_var)
-        self.skip_rounds_dropdown['values'] = list(range(1, 11))  # Dropdown values from 1 to 10
+        self.skip_rounds_dropdown['values'] = list(range(1, self.get_char_list_length()))  # Dropdown values from 1 to 10
         self.skip_rounds_dropdown.pack(side=tk.LEFT)
         
         self.rounds_label = tk.Label(self.skip_rounds_frame, text="rounds")
@@ -78,6 +85,10 @@ class Application(tk.Tk):
         # Button to start initialization and show popup
         self.start_init_button = tk.Button(self, text="StartInit", command=self.show_popup)
         self.start_init_button.pack(pady=10)
+    
+    def get_char_list_length(self):
+        print("get_char_list_length")
+        return 5#placeholder value
     
     def start(self):
         print("Started")
@@ -99,7 +110,7 @@ class Application(tk.Tk):
     def show_popup(self):
         popup = tk.Toplevel(self)
         popup.title("StartInit Popup")
-        popup.geometry("300x500")
+        popup.geometry("300x600")
 
         # Box for new figure
         figure_frame = tk.LabelFrame(popup, text="New Figure")
@@ -108,10 +119,14 @@ class Application(tk.Tk):
         tk.Label(figure_frame, text="x_pos:").grid(row=0, column=0, sticky="e")
         self.x_pos_entry = tk.Entry(figure_frame)
         self.x_pos_entry.grid(row=0, column=1)
+        self.x_pos_entry.insert(0, "0")
+        self.x_pos_entry.bind("<FocusOut>", self.validate_x_pos)
 
         tk.Label(figure_frame, text="y_pos:").grid(row=1, column=0, sticky="e")
         self.y_pos_entry = tk.Entry(figure_frame)
         self.y_pos_entry.grid(row=1, column=1)
+        self.y_pos_entry.insert(0, "0")
+        self.y_pos_entry.bind("<FocusOut>", self.validate_y_pos)
 
         tk.Label(figure_frame, text="Größe:").grid(row=2, column=0, sticky="e")
         self.size_entry = tk.Entry(figure_frame)
@@ -137,10 +152,14 @@ class Application(tk.Tk):
         tk.Label(event_frame, text="x_pos:").grid(row=0, column=0, sticky="e")
         self.event_x_pos_entry = tk.Entry(event_frame)
         self.event_x_pos_entry.grid(row=0, column=1)
+        self.event_x_pos_entry.insert(0, "0")
+        self.event_x_pos_entry.bind("<FocusOut>", self.validate_event_x_pos)
 
         tk.Label(event_frame, text="y_pos:").grid(row=1, column=0, sticky="e")
         self.event_y_pos_entry = tk.Entry(event_frame)
         self.event_y_pos_entry.grid(row=1, column=1)
+        self.event_y_pos_entry.insert(0, "0")
+        self.event_y_pos_entry.bind("<FocusOut>", self.validate_event_y_pos)
 
         tk.Label(event_frame, text="Größe:").grid(row=2, column=0, sticky="e")
         self.event_size_entry = tk.Entry(event_frame)
@@ -155,9 +174,49 @@ class Application(tk.Tk):
         add_event_button = tk.Button(event_frame, text="Add", command=self.add_event)
         add_event_button.grid(row=4, columnspan=2, pady=10)
 
+        # Box for slider
+        slider_frame = tk.LabelFrame(popup, text="Slider")
+        slider_frame.pack(padx=10, pady=10, fill="both", expand=True)
+
+        self.slider = tk.Scale(slider_frame, from_=0, to=5, resolution=0.01, orient="horizontal")
+        self.slider.pack(padx=10, pady=10)
+        self.slider.bind("<ButtonRelease-1>", self.slider_released)
+
         # Close button for popup
         close_button = tk.Button(popup, text="Close", command=popup.destroy)
         close_button.pack(pady=10)
+
+    def validate_x_pos(self, event):
+        value = int(self.x_pos_entry.get())
+        if value < self.X_POS_MIN or value > self.X_POS_MAX:
+            self.x_pos_entry.delete(0, tk.END)
+            self.x_pos_entry.insert(0, "0")
+            print(f"x_pos must be between {self.X_POS_MIN} and {self.X_POS_MAX}")
+
+    def validate_y_pos(self, event):
+        value = int(self.y_pos_entry.get())
+        if value < self.Y_POS_MIN or value > self.Y_POS_MAX:
+            self.y_pos_entry.delete(0, tk.END)
+            self.y_pos_entry.insert(0, "0")
+            print(f"y_pos must be between {self.Y_POS_MIN} and {self.Y_POS_MAX}")
+
+    def validate_event_x_pos(self, event):
+        value = int(self.event_x_pos_entry.get())
+        if value < self.X_POS_MIN or value > self.X_POS_MAX:
+            self.event_x_pos_entry.delete(0, tk.END)
+            self.event_x_pos_entry.insert(0, "0")
+            print(f"Event x_pos must be between {self.X_POS_MIN} and {self.X_POS_MAX}")
+
+    def validate_event_y_pos(self, event):
+        value = int(self.event_y_pos_entry.get())
+        if value < self.Y_POS_MIN or value > self.Y_POS_MAX:
+            self.event_y_pos_entry.delete(0, tk.END)
+            self.event_y_pos_entry.insert(0, "0")
+            print(f"Event y_pos must be between {self.Y_POS_MIN} and {self.Y_POS_MAX}")
+
+    def slider_released(self, event):
+        value = self.slider.get()
+        print(f"Slider value: {value}")
 
     def add_new_figure(self):
         x_pos = int(self.x_pos_entry.get())
@@ -174,8 +233,9 @@ class Application(tk.Tk):
         event_type = self.event_type_var.get()
         print(f"Added Event: x_pos={x_pos}, y_pos={y_pos}, Größe={size}, Type={event_type}")
 
-if __name__ == "__main__":
-    app = Application()
-    app.mainloop()
 
+#following code is the call for the GUI in game.py
+if __name__ == "__main__":
+    app = Application(30,40)
+    app.mainloop()
 
