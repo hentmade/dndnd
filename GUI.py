@@ -8,16 +8,28 @@ from tkinter import messagebox
 """ 
 Required IOs:
 
-Button next_round
+Button next_round (read Position)
+Button skip X rounds
 Button add_new_figures
 Button start
 Button end
 
-Dialog Box new_figure
-    textbox x_pos
-    textbox y_pos
+Dialog Box Init
+    Dialog Box new_figure
+        textbox x_pos
+        textbox y_pos
+        größe Optional
+        enemy friend npc optional
+        initiative
+
+    Dialog Box add event
+        pos
+        size
+        type (dropdown)
 
 Additional
+    diplay reihenfolge
+    DM text Log
     imageDisplay show_populated_map
  """
 #Create an instance of Tkinter Frame
