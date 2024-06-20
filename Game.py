@@ -145,7 +145,9 @@ region = place_figures(Figure_Type.ENEMY,region)
 # ToDo: Event Klasse nochmal neu überdenken
 # ToDo: VisuStates der Events anlegen
 
-game_field.add_event("TRAP",(2,2),1)
+game_field.add_event(Event_Type.Trap,(6,6),1)
+game_field.add_event(Event_Type.Fire,(5,5),1)
+print("Events hinzugefügt")
 
 # 6.	Items verteilen
 # ToDo: Items Randomized verteilen --> Felder ausschließen wo Spieler stehen
@@ -172,11 +174,13 @@ if all_figures_count:
         screenshot_next = image_transformer.transform_image(screenshot_next)  
         end_pos = position_detector.detectPosition(screenshot_next,screenshot_prev)
         game_field.move_figure(selected_figure,start_pos,end_pos)
-       
+        map.remove_overlay("Assets\\player_radius.png",start_pos,selected_figure.size*5)      
+          
+
         end_cell = game_field.get_cell(end_pos)
 
-        if(end_cell.event is not None):
-            end_cell.trigger_event
+        #if(end_cell.event is not None):
+        #    end_cell.trigger_event
             
         print(f"Figur {selected_figure.id} wurde bewegt. Neue Position: {selected_figure.position}")
         print("Ready Next Player... (ENTER)")
@@ -206,7 +210,7 @@ if all_figures_count:
         # ToDo: Spielende festlegen
         # ToDo: Overlay müssen auf eine Cell gefittet werden -->  map.add_overlay(cell.visuState,(100,100))
 
-        cv2.destroyWindow("Map")
+        #cv2.destroyWindow("Map")
         map.display_map("Map")
         cv2.waitKey(0)
         round += 1
