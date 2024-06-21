@@ -120,7 +120,6 @@ map.resize_map()
 map.display_map("Map")
 cv2.waitKey(0)
 
-# ToDo: Hier muss die GITTERERKENNUNG rein und die Zellen in x und y Richtung liefern
 #add debug = true to get debugging output
 instance_Gitter_Erkennung =  GitterErkennung( cv2.imread(map_disk_path),debug=False)
 
@@ -128,13 +127,13 @@ game_field_height,game_field_width = instance_Gitter_Erkennung.return_dimensions
 print("dimensions Game.py: ",game_field_height,game_field_width)
 # ------------------------------------------------------------ SPIELFELD INITIALISIEREN -------------------------------------------------------#
 # 1.    Anzahl der Objekte festlegen
-game_field_height = 40 
-game_field_width = 50 
+#game_field_height = 40 
+#game_field_width = 50 
 event_count = 2
 item_count = 2
 figure_sequence = []
 
-game_field = GameField(game_field_height,game_field_width)
+game_field = GameField(game_field_height,game_field_width,map)
 position_detector = PositionDetection(game_field_width,game_field_height)
 
 region = place_figures(Figure_Type.PLAYER)
@@ -145,7 +144,10 @@ region = place_figures(Figure_Type.ENEMY,region)
 # ToDo: Events Randomized verteilen --> Felder ausschließen wo Spieler stehen
 # ToDo: Event Klasse nochmal neu überdenken
 # ToDo: VisuStates der Events anlegen
-#  game_field.add_event("TRAP",(2,2),1)
+
+game_field.add_event(Event_Type.Trap,(6,6),1)
+game_field.add_event(Event_Type.Fire,(5,5),1)
+print("Events hinzugefügt")
 
 # 6.	Items verteilen
 # ToDo: Items Randomized verteilen --> Felder ausschließen wo Spieler stehen
@@ -166,14 +168,24 @@ if all_figures_count:
         print(f"Aktuelle Position: {selected_figure.position}")
         print("Figur umstellen und mit ENTER bestätigen!")
         input()
+        
         region = take_screenshot(screenshot_next_path,region)
         screenshot_next = cv2.imread(screenshot_next_path)
         screenshot_next = image_transformer.transform_image(screenshot_next)  
         end_pos = position_detector.detectPosition(screenshot_next,screenshot_prev)
         game_field.move_figure(selected_figure,start_pos,end_pos)
+        map.remove_overlay("Assets\\player_radius.png",start_pos,selected_figure.size*5)      
+          
+
+        end_cell = game_field.get_cell(end_pos)
+
+        #if(end_cell.event is not None):
+        #    end_cell.trigger_event
+            
         print(f"Figur {selected_figure.id} wurde bewegt. Neue Position: {selected_figure.position}")
         print("Ready Next Player... (ENTER)")
         input()
+        
 
         # 4.	Cell.Trigger(new_position)-Funktion auslösen 
         # ToDo - Test: Figur auf Event bewegen und auslösen
@@ -198,7 +210,7 @@ if all_figures_count:
         # ToDo: Spielende festlegen
         # ToDo: Overlay müssen auf eine Cell gefittet werden -->  map.add_overlay(cell.visuState,(100,100))
 
-        cv2.destroyWindow("Map")
+        #cv2.destroyWindow("Map")
         map.display_map("Map")
         cv2.waitKey(0)
         round += 1
