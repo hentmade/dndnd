@@ -14,6 +14,7 @@ class Figure(Object):
     def __init__(self,name,type,position,size):
         super().__init__(type,position,size)
         self.name = name
+        self.size = size
         self.id = f"{type.value}{Figure.id_counters[type]:03d}"
         Figure.id_counters[type] += 1
 
