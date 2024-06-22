@@ -1,61 +1,26 @@
-import tkinter
-
 import tkinter as tk
-
-from tkinter import *
-from tkinter import ttk
-from tkinter import messagebox
-""" 
-Required IOs:
-
-Button next_round (read Position)
-Button skip X rounds
-Button add_new_figures
-Button start
-Button end
-
-Dialog Box Init
-    Dialog Box new_figure
-        textbox x_pos
-        textbox y_pos
-        größe Optional
-        enemy friend npc optional
-        initiative
-
-    Dialog Box add event
-        pos
-        size
-        type (dropdown)
-
-Additional
-    diplay reihenfolge
-    DM text Log
-    imageDisplay show_populated_map
+from tkinter import ttk, filedialog, messagebox
+from PIL import Image, ImageTk
+import cv2
+from typing import Tuple
+from typing import Optional, Dict
+from GameField import *
+from Cell import *
+from Figure import *
+from Event import *
+from Item import *
+from Map import *
+from PositionDetection import *
+from ImageTransformer import *
+from GitterErkennung import *
+import mouse
+import mss
+import os
 
 
-Views
-
-Initialisierung: Wir brauchen ein Fenster wo die Initialisierung stattfindet. Darunter fällt alles was bisher vor der GameLoop passiert. 
-
-Hinzufügen der Spielerfiguren
-Hinzufügen der Gegnerfiguren 
---> optional mit Beachtung der Reihenfolge, sprich die Figuren sind in der Reihenfolge dran die man ihnen zuschreibt (nennt sich in DND Initiative, die wird am Anfang ausgewürfelt mit einem 20-seitigen Würfel, wenn man die gewürfelte Zahl irgendwo eintragen kann und er daraufhin beginnend mit dem höchsten Würfelergebnis die Reihenfolge bildet wäre das ziemlich nice)
-Hinzufügen der Events (Trap, Fire bisher nur implementiert) mit Positionsangabe (x,y)
-Hinzufügen der Items mit Positionsangabe.
-Button "Weiter" um eine View weiterzukommen und die Initialisierung abzuschließen
-GameLoop: Hier sollte der Dungeon Master die Konsolenausgabe einfach sehen können bzw. einfach ein Log wo das Auslösen von Events hinterlegt ist und man die Spielfiguren weiterschalten kann / Runde beenden.
-
-Ausgabe des Spielgeschehens (Konsolenausgabe)
-Button zum Durchschalten der Figuren
-Optional: Anzeige der Map für DM
-Optional: Anzeige der Figurenreihenfolge
-Optional: Hinzufügen von Gegnereinheiten
-
-
- """
-
-import tkinter as tk
-from tkinter import ttk
+screenshot_prev_path = "Assets\\map_screenshot_prev.png"
+screenshot_next_path = "Assets\\map_screenshot_next.png"
+screenshot_path = "Assets\\map_screenshot.png"
 
 class Application(tk.Tk):
     X_POS_MIN = 0
@@ -69,8 +34,21 @@ class Application(tk.Tk):
         self.Y_POS_MAX = Y_POS_MAX
         self.title("GUI Application")
         self.geometry("400x500")
-        
+        self.running = False        
         self.create_widgets()
+        self.map_path = None  # Variable to store the path to the map
+        self.map = None
+        self.map_window = None  # Variable to store the map window
+        self.map_image = None  # Variable to store the map image
+        self.map_label = None  # Label to display the map image
+        self.game_field = None
+        self.position_detector = None
+        self.rotation_angle = 0
+        self.camera = None
+        self.screenshot_path = screenshot_path
+
+        self.withdraw()  # Hide the main window initially
+        self.show_start_window()
         
     def create_widgets(self):
         # Button to start
@@ -107,23 +85,235 @@ class Application(tk.Tk):
         self.start_init_button = tk.Button(self, text="StartInit", command=self.show_popup)
         self.start_init_button.pack(pady=10)
     
-    def get_char_list_length(self):
-        print("get_char_list_length")
-        return 5#placeholder value
+    
+    def start_init(self, start_window):
+        if self.map_path:
+            print(f"Preprocessing map: {self.map_path}")
+            self.map = Map(self.map_path)    
+
+            # ToDo: Unbedingt wieder einkommentieren! Nur für leichteres Testen aus.      
+            self.show_opencv_window()  
+            self.show_map_window()
+
+            self.initialize_game()
+            self.show_popup()
+            self.show_camera_popup()
+
+            start_window.destroy()           
+            self.deiconify()  # Show the main window
+        else:
+            messagebox.showwarning("No Map Selected", "Please select a map file before starting.")
+
+    def initialize_game(self):        
+        grid = GitterErkennung( cv2.imread(self.map_path),debug=False)
+        if self.rotation_angle is not 0 and self.rotation_angle is not 180:            
+            game_field_width,game_field_height = grid.return_dimensions
+        else:
+            game_field_height,game_field_width = grid.return_dimensions
+        self.game_field = GameField(game_field_height,game_field_width,self.map)
+        print(f"(Height,Width) : ({game_field_height,game_field_width})")
+        self.position_detector = PositionDetection(game_field_width,game_field_height)
+
+
+    def prepare_camera(self):
+        print("Detecting camera region...")
+        # Öffne das Kamera-Fenster und erfasse die Ecken der Map
+        self.capture = cv2.VideoCapture(0)
+        cv2.namedWindow("Camera")
+        cv2.setMouseCallback("Camera", self.click_event)
+
+        self.corners = []
+        while True:
+            ret, frame = self.capture.read()
+            if not ret:
+                break
+            if len(self.corners) > 0:
+                for corner in self.corners:
+                    cv2.circle(frame, corner, 5, (0, 0, 255), -1)
+            cv2.imshow("Camera", frame)
+            if cv2.waitKey(1) & 0xFF == 13:  # Exit on pressing 'Esc'
+                break
+
+        if len(self.corners) != 4:
+            print("Error: You need to select exactly 4 corners.")
+        else:
+            print("Corners selected: ", self.corners)
+            self.camera = ImageTransformer(self.corners)
+ 
+        
+        
+# ------------------------------------------------------------------------------ GameLogic ------------------------------------------------------------------------------------- #
     
     def start(self):
-        print("Started")
+        if not self.map_path:
+            messagebox.showwarning("No Map Selected", "Please select a map file before starting.")
+            return
+        self.running = True
+        print("Game started")
     
     def end(self):
+        self.running = False
         print("Ended")
         self.quit()
     
     def next_round(self):
-        print("Next Round")
+        if self.running:
+            print("Next Round")
     
     def skip_rounds(self):
         rounds_to_skip = self.rounds_var.get()
         print(f"Skipped {rounds_to_skip} rounds")
+    
+
+    def detect_automatically(self):    
+        self.take_screenshot(screenshot_path,self.camera.clicked_points)
+        screenshot = cv2.imread(screenshot_path)
+        self.camera.transform_image(screenshot)
+        cv2.imshow(screenshot)
+        cv2.waitKey(0)
+        print(f"Stelle eine neue Figur aufs Spielfeld und bestätige mit ENTER.")
+        input()
+        self.take_screenshot(screenshot_path,self.camera.clicked_points)
+        screenshot_next = cv2.imread(screenshot_path)
+        screenshot_next = self.camera.transform_image(screenshot_next)
+        cv2.imshow(screenshot_next)
+        cv2.waitKey(0)
+
+        position = self.position_detector.detectPosition(screenshot_next, screenshot)
+
+        cv2.imshow(screenshot)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows
+
+        x_pos, y_pos = position
+
+        print(f"(x,y) = {x_pos,y_pos}")
+
+       # x_pos, y_pos = (5,5)
+
+        # Fülle die erkannten Werte in die Textboxen ein
+        self.x_pos_entry.delete(0, tk.END)
+        self.x_pos_entry.insert(0, str(x_pos))
+        self.y_pos_entry.delete(0, tk.END)
+        self.y_pos_entry.insert(0, str(y_pos))
+        self.size_entry.delete(0, tk.END)
+        self.size_entry.insert(0, str(size))
+
+
+# ------------------------------------------------------------------------------ Helper ------------------------------------------------------------------------------------- #
+   
+    def update_map_size(self, event=None):
+        scale_factor = self.slider.get()
+        self.map.resize_map(scale_factor)
+        self.update_map_image()
+    
+    def update_map_image(self):
+        # Verwende das skalierte und rotierte Bild aus dem OpenCV-Fenster
+        bgr_image = self.scaled_image
+        rgb_image = cv2.cvtColor(bgr_image, cv2.COLOR_BGR2RGB)
+        image_pil = Image.fromarray(rgb_image)
+        self.map_image = ImageTk.PhotoImage(image_pil)
+
+        self.map_label.config(image=self.map_image)
+        self.map_label.image = self.map_image  # Verhindert das Garbage Collection Problem
+
+    def select_map_file(self):
+        file_path = filedialog.askopenfilename(filetypes=[("Image Files", "*.png;*.jpg;*.jpeg;*.bmp")])
+        if file_path:
+            self.map_path = file_path
+            print(f"Selected map file: {self.map_path}")
+
+    def get_char_list_length(self):
+        print("get_char_list_length")
+        return 5  # Placeholder value
+    
+
+    def click_event(self, event, x, y, flags, param):
+        if event == cv2.EVENT_LBUTTONDOWN:
+            if len(self.corners) < 4:
+                self.corners.append((x, y))
+                print(f"Corner {len(self.corners)}: ({x}, {y})")
+            else:
+                print("All 4 corners have already been selected.")
+
+
+    def take_screenshot(save_path,region):
+        with mss.mss() as sct:
+            screenshot = sct.grab(region)
+            mss.tools.to_png(screenshot.rgb, screenshot.size, output=save_path)  
+# ------------------------------------------------------------------------------ GUI ------------------------------------------------------------------------------------- #
+
+    def show_start_window(self):
+        start_window = tk.Toplevel(self)
+        start_window.title("Select Map")
+        start_window.geometry("300x150")
+
+        tk.Label(start_window, text="Select a map file to start the game:").pack(pady=10)
+        select_button = tk.Button(start_window, text="Select Map", command=self.select_map_file)
+        select_button.pack(pady=10)
+        start_button = tk.Button(start_window, text="Start Game", command=lambda: self.start_init(start_window))
+        start_button.pack(pady=10)
+
+    def show_map_window(self):
+        if self.map_window is not None:
+            self.map_window.destroy()
+        self.map_window = tk.Toplevel(self)
+        self.map_window.title("Map Display")
+        self.map_window.geometry("800x600")
+
+        self.map_label = tk.Label(self.map_window)
+        self.map_label.pack()
+        
+        self.update_map_image()
+
+    
+    def show_opencv_window(self):
+        def on_trackbar(val):
+            update_image()
+
+        def update_image():
+            scale_factor = cv2.getTrackbarPos("Scale", "Adjust Map") / 100
+            self.rotation_angle = cv2.getTrackbarPos("Rotate", "Adjust Map")
+            self.rotation_angle = [0, 90, 180, 270][self.rotation_angle]  # Nur die erlaubten Winkel
+
+            # Skaliere das Bild
+            scaled_image = cv2.resize(self.original_image, None, fx=scale_factor, fy=scale_factor, interpolation=cv2.INTER_LINEAR)
+            
+            # Rotationszentrum
+            h, w = scaled_image.shape[:2]
+            center = (w // 2, h // 2)
+
+            # Rotationsmatrix
+            rotation_matrix = cv2.getRotationMatrix2D(center, self.rotation_angle, 1.0)
+
+            # Berechne die neue Bounding Box Größe
+            abs_cos = abs(rotation_matrix[0, 0])
+            abs_sin = abs(rotation_matrix[0, 1])
+            bound_w = int(h * abs_sin + w * abs_cos)
+            bound_h = int(h * abs_cos + w * abs_sin)
+
+            # Anpassung der Rotationsmatrix für das neue Bounding Box
+            rotation_matrix[0, 2] += bound_w / 2 - center[0]
+            rotation_matrix[1, 2] += bound_h / 2 - center[1]
+            rotated_image = cv2.warpAffine(scaled_image, rotation_matrix, (bound_w, bound_h))
+
+            cv2.imshow("Adjust Map", rotated_image)
+            self.scaled_image = rotated_image
+
+        # Lesen und Anzeigen des Originalbilds
+        self.original_image = cv2.imread(self.map_path)
+        self.scaled_image = self.original_image.copy()
+        
+        cv2.namedWindow("Adjust Map")
+        cv2.imshow("Adjust Map", self.original_image)
+
+        cv2.createTrackbar("Scale", "Adjust Map", 100, 200, on_trackbar)
+        cv2.createTrackbar("Rotate", "Adjust Map", 0, 3, on_trackbar)  # Slider auf Werte 0 bis 3 beschränken
+
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
+
+
     
     def show_popup(self):
         popup = tk.Toplevel(self)
@@ -163,6 +353,10 @@ class Application(tk.Tk):
         add_figure_button = tk.Button(figure_frame, text="Add", command=self.add_new_figure)
         add_figure_button.grid(row=5, columnspan=2, pady=10)
 
+        # Button for detecting position automatically
+        detect_button = tk.Button(figure_frame, text="Detect Automatically", command=self.detect_automatically)
+        detect_button.grid(row=6, columnspan=2, pady=10)
+
         # Box for adding event
         event_frame = tk.LabelFrame(popup, text="Add Event")
         event_frame.pack(padx=10, pady=10, fill="both", expand=True)
@@ -192,17 +386,27 @@ class Application(tk.Tk):
         add_event_button = tk.Button(event_frame, text="Add", command=self.add_event)
         add_event_button.grid(row=4, columnspan=2, pady=10)
 
-        # Box for slider
-        slider_frame = tk.LabelFrame(popup, text="Slider")
-        slider_frame.pack(padx=10, pady=10, fill="both", expand=True)
-
-        self.slider = tk.Scale(slider_frame, from_=0, to=5, resolution=0.01, orient="horizontal")
-        self.slider.pack(padx=10, pady=10)
-        self.slider.bind("<ButtonRelease-1>", self.slider_released)
-
         # Close button for popup
+        close_button = tk.Button(popup, text="OK", command=popup.destroy)
+        close_button.pack(pady=10)
+
+
+    def show_camera_popup(self):
+        popup = tk.Toplevel(self)
+        popup.title("Camera Setup")
+        popup.geometry("300x150")
+
+        tk.Label(popup, text="Please select the region for the camera!").pack(pady=10)
+        select_button = tk.Button(popup, text="Select", command=self.prepare_camera)
+        select_button.pack(pady=10)
+
         close_button = tk.Button(popup, text="Close", command=popup.destroy)
         close_button.pack(pady=10)
+
+   
+        
+
+
 
     def validate_x_pos(self, event):
         value = int(self.x_pos_entry.get())
@@ -251,9 +455,13 @@ class Application(tk.Tk):
         event_type = self.event_type_var.get()
         print(f"Added Event: x_pos={x_pos}, y_pos={y_pos}, Größe={size}, Type={event_type}")
 
+    def game_loop(self):
+        if self.running:
+            # Placeholder for game logic
+            print("Game loop iteration")
+
 
 #following code is the call for the GUI in game.py
 if __name__ == "__main__":
     app = Application(30,40)
     app.mainloop()
-

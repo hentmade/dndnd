@@ -23,12 +23,20 @@ class Map:
         rotation_matrix[1, 2] += bound_h / 2 - center[1]
         rotated_img = cv2.warpAffine(self.background, rotation_matrix, (bound_w, bound_h))
         self.background = rotated_img
+        print(f"Map rotated {angle}°")
         return self.background
     
 
-    def resize_map(self, width=None, height=None):
-        #ToDo: Width und Height der Map müssen noch richtig erkannt und skaliert werden für die Anzeige        
-        self.background = cv2.resize(self.background, (950,760))
+    # def resize_map(self, width=None, height=None):
+    #     #ToDo: Width und Height der Map müssen noch richtig erkannt und skaliert werden für die Anzeige        
+    #     self.background = cv2.resize(self.background, (950,760))
+    #     return self.background
+    
+    def resize_map(self, scale_factor):
+        height, width = self.background.shape[:2]
+        new_width = int(width * scale_factor)
+        new_height = int(height * scale_factor)
+        self.background = cv2.resize(self.background, (new_width, new_height), interpolation=cv2.INTER_LINEAR)
         return self.background
     
 
