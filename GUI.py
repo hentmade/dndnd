@@ -46,6 +46,7 @@ class Application(tk.Tk):
         self.rotation_angle = 0
         self.camera = None
         self.screenshot_path = screenshot_path
+        self.region = None
 
         self.withdraw()  # Hide the main window initially
         self.show_start_window()
@@ -116,30 +117,29 @@ class Application(tk.Tk):
 
 
     def prepare_camera(self):
-        print("Detecting camera region...")
-        # Öffne das Kamera-Fenster und erfasse die Ecken der Map
-        self.capture = cv2.VideoCapture(0)
-        cv2.namedWindow("Camera")
-        cv2.setMouseCallback("Camera", self.click_event)
+        print("Detecting screen region...")
 
-        self.corners = []
-        while True:
-            ret, frame = self.capture.read()
-            if not ret:
-                break
-            if len(self.corners) > 0:
-                for corner in self.corners:
-                    cv2.circle(frame, corner, 5, (0, 0, 255), -1)
-            cv2.imshow("Camera", frame)
-            if cv2.waitKey(1) & 0xFF == 13:  # Exit on pressing 'Esc'
-                break
+        self.corners = []     
 
-        if len(self.corners) != 4:
-            print("Error: You need to select exactly 4 corners.")
-        else:
-            print("Corners selected: ", self.corners)
-            self.camera = ImageTransformer(self.corners)
- 
+        if self.region is None:
+            print("\nPlease select the top-left point of the camera image without any figure.")
+            x1, y1 = self.get_click_position()
+            print("\nSelect the bottom-right point of the camera image without any figure.")
+            x2, y2 = self.get_click_position()
+            left, top = min(x1, x2), min(y1, y2)
+            width, height = abs(x2 - x1), abs(y2 - y1)
+            self.region = {"left": left, "top": top, "width": width, "height": height}
+
+
+    def get_click_position(self) -> Tuple[int, int]:
+        print("Bitte klicke, um eine Position zu wählen...")
+        pos = None
+        while pos is None:
+            if mouse.is_pressed(button='left'):
+                pos = mouse.get_position()
+                while mouse.is_pressed(button='left'):
+                    pass
+        return pos
         
         
 # ------------------------------------------------------------------------------ GameLogic ------------------------------------------------------------------------------------- #
@@ -165,31 +165,30 @@ class Application(tk.Tk):
         print(f"Skipped {rounds_to_skip} rounds")
     
 
-    def detect_automatically(self):    
-        self.take_screenshot(screenshot_path,self.camera.clicked_points)
+    def detect_automatically(self):
+        region = self.camera.clicked_points
+        self.take_screenshot(screenshot_path)
         screenshot = cv2.imread(screenshot_path)
         self.camera.transform_image(screenshot)
-        cv2.imshow(screenshot)
+        cv2.imshow("Screenshot", screenshot)
         cv2.waitKey(0)
         print(f"Stelle eine neue Figur aufs Spielfeld und bestätige mit ENTER.")
         input()
-        self.take_screenshot(screenshot_path,self.camera.clicked_points)
+        self.take_screenshot(screenshot_path, region)
         screenshot_next = cv2.imread(screenshot_path)
         screenshot_next = self.camera.transform_image(screenshot_next)
-        cv2.imshow(screenshot_next)
+        cv2.imshow("Next Screenshot", screenshot_next)
         cv2.waitKey(0)
 
         position = self.position_detector.detectPosition(screenshot_next, screenshot)
 
-        cv2.imshow(screenshot)
+        cv2.imshow("Next Screenshot", screenshot_next)
         cv2.waitKey(0)
-        cv2.destroyAllWindows
+        cv2.destroyAllWindows()
 
         x_pos, y_pos = position
 
         print(f"(x,y) = {x_pos,y_pos}")
-
-       # x_pos, y_pos = (5,5)
 
         # Fülle die erkannten Werte in die Textboxen ein
         self.x_pos_entry.delete(0, tk.END)
@@ -197,7 +196,9 @@ class Application(tk.Tk):
         self.y_pos_entry.delete(0, tk.END)
         self.y_pos_entry.insert(0, str(y_pos))
         self.size_entry.delete(0, tk.END)
-        self.size_entry.insert(0, str(size))
+        self.size_entry.insert(0, str(1))  # Assuming size is always 1
+
+
 
 
 # ------------------------------------------------------------------------------ Helper ------------------------------------------------------------------------------------- #
@@ -237,10 +238,27 @@ class Application(tk.Tk):
                 print("All 4 corners have already been selected.")
 
 
-    def take_screenshot(save_path,region):
+    def take_screenshot(self, save_path, region):
         with mss.mss() as sct:
-            screenshot = sct.grab(region)
-            mss.tools.to_png(screenshot.rgb, screenshot.size, output=save_path)  
+            # Berechne die Begrenzungsbox aus den Eckpunkten
+            left = min(region, key=lambda t: t[0])[0]
+            top = min(region, key=lambda t: t[1])[1]
+            right = max(region, key=lambda t: t[0])[0]
+            bottom = max(region, key=lambda t: t[1])[1]
+            width = right - left
+            height = bottom - top
+
+            bounding_box = {
+                "top": top,
+                "left": left,
+                "width": width,
+                "height": height
+            }
+
+            screenshot = sct.grab(bounding_box)
+            mss.tools.to_png(screenshot.rgb, screenshot.size, output=save_path)
+
+
 # ------------------------------------------------------------------------------ GUI ------------------------------------------------------------------------------------- #
 
     def show_start_window(self):
@@ -251,7 +269,7 @@ class Application(tk.Tk):
         tk.Label(start_window, text="Select a map file to start the game:").pack(pady=10)
         select_button = tk.Button(start_window, text="Select Map", command=self.select_map_file)
         select_button.pack(pady=10)
-        start_button = tk.Button(start_window, text="Start Game", command=lambda: self.start_init(start_window))
+        start_button = tk.Button(start_window, text="Continue", command=lambda: self.start_init(start_window))
         start_button.pack(pady=10)
 
     def show_map_window(self):
