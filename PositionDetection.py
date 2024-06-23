@@ -14,6 +14,9 @@ class PositionDetection:
    def detectPosition(self, img_foreground, img_background):
       backgroundSubtractor = BackgroundSubtraction()
       difference_img = backgroundSubtractor.subtract(img_foreground, img_background)
+
+      # cv2.imshow("Difference Image",difference_img)
+      # cv2.waitKey(0)
       
       diff_img_height, diff_img_width = difference_img.shape
       cell_width = diff_img_width/self.game_field_width

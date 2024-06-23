@@ -18,8 +18,8 @@ class Cell:
         self.visu_state = None
 
 
-    def add_figure(self,name,type,size=1):
-        self.figure = Figure(name,type,self.position,size)
+    def add_figure(self,name,type,initiative,size=1):
+        self.figure = Figure(name,type,self.position,size,initiative)
         return self.figure
     
     def remove_figure(self):

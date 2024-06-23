@@ -14,6 +14,7 @@ class GameField:
         self.initialize_GameField
         self.field_corners = []
         self.overlay = None
+        self.figures = []
     
     def initialize_GameField(self):
         for row in self.cells:
@@ -27,8 +28,11 @@ class GameField:
         return self.cells[x][y]       
 
     # ---------------------------------------- Figure ------------------------------------------------
-    def add_figure(self,name,type, position,size=1):
-        return self.get_cell(position).add_figure(name,type,size)
+    def add_figure(self, name, type, position, size, initiative):
+        figure = self.get_cell(position).add_figure(name, type, size, initiative)
+        self.figures.append(figure)
+        self.sort_figures_by_initiative()
+        return figure
     
     def move_figure(self,figure,start_position,end_position):
         figure.position = end_position
@@ -44,6 +48,8 @@ class GameField:
     def remove_figure(self,position):
         self.get_cell(position).remove_figure(position)
 
+    def sort_figures_by_initiative(self):
+        self.figures.sort(key=lambda fig: fig.initiative, reverse=True)
 
     # ------------------------------------------- Event -----------------------------------------------
     def add_event(self, type, position, size=1):
