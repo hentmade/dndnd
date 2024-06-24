@@ -129,11 +129,16 @@ class Application(tk.Tk):
             return
         self.running = True
         print("Game started")
-        self.selected_figure = self.get_current_figure()       
+        self.selected_figure = self.get_current_figure() 
+        self.screenshot_prev = self.detect_one_position()      
         
         start_position = self.selected_figure.position
+        
 
-        print(f"Startposition: {start_position} ")
+        print(f"Startposition {self.selected_figure.name}: {start_position} ")
+
+        self.map.display_map("Map")
+        cv2.waitKey(0)
         
 
     
@@ -143,7 +148,6 @@ class Application(tk.Tk):
         return selected_figure
 
 
-    
     def end(self):
         self.running = False
         print("Ended")
@@ -151,19 +155,30 @@ class Application(tk.Tk):
     
     def next_round(self):
         if self.running:
-            print("Next Round")
+            print(f"Next Round {self.round}")
 
-        end_position = self.detect_position()
+        self.screenshot_next = self.detect_one_position()
+        end_position = self.position_detector.detectPosition(self.screenshot_next, self.screenshot_prev)
         print(f"Endposition {self.selected_figure.name}: {end_position} ")
 
-        self.game_field.move_figure(self.selected_figure,self.selected_figure.position,end_position)
+        start_position = self.selected_figure.position
+
+        self.game_field.move_figure(self.selected_figure,start_position,end_position)
+        
+        self.map.remove_overlay("Assets\\player_radius.png",start_position,self.selected_figure.size*5) 
+
         self.round +=1
 
-        self.selected_figure = self.get_current_figure()        
+        self.selected_figure = self.get_current_figure() 
+
+        self.screenshot_prev = self.detect_one_position()      
         
         start_position = self.selected_figure.position
 
-        print(f"Startposition: {start_position} ")
+        print(f"Startposition {self.selected_figure.name}: {start_position} ")
+
+        self.map.display_map("Map")
+        cv2.waitKey(0)
 
        
     
@@ -171,6 +186,12 @@ class Application(tk.Tk):
         rounds_to_skip = self.rounds_var.get()
         print(f"Skipped {rounds_to_skip} rounds")
     
+    def detect_one_position(self):
+        self.take_screenshot(screenshot_path)
+        screenshot = cv2.imread(screenshot_path)
+        return screenshot
+    
+
     def detect_position(self):
         self.take_screenshot(screenshot_path)
         screenshot = cv2.imread(screenshot_path)
@@ -252,8 +273,27 @@ class Application(tk.Tk):
         x_pos = int(self.event_x_pos_entry.get())
         y_pos = int(self.event_y_pos_entry.get())
         size = int(self.event_size_entry.get())
-        event_type = self.event_type_var.get()
+        event_type_str = self.event_type_var.get()
+
+        try:
+            event_type = Event_Type[event_type_str.upper()]
+        except KeyError:
+            messagebox.showerror("Ungültiger Typ", f"Der Typ '{event_type_str}' ist ungültig.")
+            return
+        
+        position = (x_pos, y_pos)
+
+
+        if not x_pos or not y_pos or not size or not event_type:
+            messagebox.showwarning("Eingabefehler", "Bitte füllen Sie alle Felder aus, bevor Sie ein Event hinzufügen.")
+            return
+        
+
+        self.game_field.add_event(event_type,position,size)
+
         print(f"Added Event: x_pos={x_pos}, y_pos={y_pos}, Größe={size}, Type={event_type}")
+
+        
 
     def game_loop(self):
         if self.running:
@@ -437,13 +477,15 @@ class Application(tk.Tk):
         self.show_figures_button = tk.Button(self, text="Show Figures", command=self.show_figures_popup)
         self.show_figures_button.pack(pady=10)
 
+        # Button to start initialization and show popup
+        self.start_init_button = tk.Button(self, text="StartInit", command=self.show_popup)
+        self.start_init_button.pack(pady=10)
+
         # Button to start
         self.start_button = tk.Button(self, text="Start", command=self.start)
         self.start_button.pack(pady=10)
-        
-        # Button to end
-        self.end_button = tk.Button(self, text="End", command=self.end)
-        self.end_button.pack(pady=10)
+
+     
         
         # Button for next round
         self.next_round_button = tk.Button(self, text="Next Round", command=self.next_round)
@@ -467,9 +509,11 @@ class Application(tk.Tk):
         self.skip_button = tk.Button(self.skip_rounds_frame, text="Skip", command=self.skip_rounds)
         self.skip_button.pack(side=tk.LEFT)
         
-        # Button to start initialization and show popup
-        self.start_init_button = tk.Button(self, text="StartInit", command=self.show_popup)
-        self.start_init_button.pack(pady=10)
+        # Button to end
+        self.end_button = tk.Button(self, text="End", command=self.end)
+        self.end_button.pack(pady=10)
+
+        
 
     def show_figures_popup(self):
         if hasattr(self, 'figures_popup') and self.figures_popup.winfo_exists():
