@@ -20,6 +20,7 @@ import time
 screenshot_prev_path = "Assets\\map_screenshot_prev.png"
 screenshot_next_path = "Assets\\map_screenshot_next.png"
 screenshot_path = "Assets\\map_screenshot.png"
+radius_path = "Assets\\player_radius.png"
 
 class Application(tk.Tk):
     X_POS_MIN = 0
@@ -41,6 +42,9 @@ class Application(tk.Tk):
         self.map_window = None  # Variable to store the map window
         self.map_image = None  # Variable to store the map image
         self.map_label = None  # Label to display the map image
+        self.original_background=None
+        self.scaled_image=None
+        self.overlayed_background=None
         self.game_field = None
         self.position_detector = None
         self.rotation_angle = 0
@@ -89,6 +93,8 @@ class Application(tk.Tk):
         self.game_field = GameField(game_field_height,game_field_width,self.map)
         print(f"(Height,Width) : ({game_field_height,game_field_width})")
         self.position_detector = PositionDetection(game_field_width,game_field_height)
+        self.map.num_cells_x = game_field_width
+        self.map.num_cells_y = game_field_height
 
 
     def prepare_camera(self):
@@ -129,98 +135,74 @@ class Application(tk.Tk):
             return
         self.running = True
         print("Game started")
+
         self.selected_figure = self.get_current_figure() 
         self.screenshot_prev = self.detect_one_position()      
-        
         start_position = self.selected_figure.position
-        
+        size = self.selected_figure.size
 
-        print(f"Startposition {self.selected_figure.name}: {start_position} ")
-
-        self.map.display_map("Map")
-        cv2.waitKey(0)
-        
-
+        self.draw_figure_radius(radius_path,self.overlayed_background,start_position,size)
     
-    def get_current_figure(self):
-        all_figures_count = len(self.game_field.figures)
-        selected_figure = self.game_field.figures[self.round % all_figures_count]
-        return selected_figure
+        print(f"Figure {self.selected_figure.name} on startposition {start_position}")
 
-
-    def end(self):
-        self.running = False
-        print("Ended")
-        self.quit()
-    
     def next_round(self):
         if self.running:
             print(f"Next Round {self.round}")
 
         self.screenshot_next = self.detect_one_position()
-        end_position = self.position_detector.detectPosition(self.screenshot_next, self.screenshot_prev)
-        print(f"Endposition {self.selected_figure.name}: {end_position} ")
-
         start_position = self.selected_figure.position
+        end_position = self.position_detector.detectPosition(self.screenshot_next, self.screenshot_prev)    
 
         self.game_field.move_figure(self.selected_figure,start_position,end_position)
-        
-        self.map.remove_overlay("Assets\\player_radius.png",start_position,self.selected_figure.size*5) 
+        print(f"Figure {self.selected_figure.name} moved to endposition {end_position} ")
+
+        self.remove_figure_radius(self.overlayed_background)
 
         self.round +=1
 
         self.selected_figure = self.get_current_figure() 
-
         self.screenshot_prev = self.detect_one_position()      
-        
         start_position = self.selected_figure.position
+        size = self.selected_figure.size
 
-        print(f"Startposition {self.selected_figure.name}: {start_position} ")
+        self.draw_figure_radius(radius_path,self.overlayed_background,start_position,size)
 
-        self.map.display_map("Map")
-        cv2.waitKey(0)
+        print(f"Figure {self.selected_figure.name} on startposition {start_position}")
 
-       
-    
+
     def skip_rounds(self):
         rounds_to_skip = self.rounds_var.get()
         print(f"Skipped {rounds_to_skip} rounds")
+    
+    def end(self):
+        self.running = False
+        print("Ended")
+        self.quit()
     
     def detect_one_position(self):
         self.take_screenshot(screenshot_path)
         screenshot = cv2.imread(screenshot_path)
         return screenshot
     
-
     def detect_position(self):
         self.take_screenshot(screenshot_path)
         screenshot = cv2.imread(screenshot_path)
         # cv2.imshow("Screenshot", screenshot)
         # cv2.waitKey(0)
-
         self.show_ok_popup()
-
         self.take_screenshot(screenshot_path)
         screenshot_next = cv2.imread(screenshot_path)
         # cv2.imshow("Next Screenshot", screenshot_next)
         # cv2.waitKey(0)
-
-        position = self.position_detector.detectPosition(screenshot_next, screenshot)
-
-        
-
-        cv2.destroyAllWindows()
-
-        
+        position = self.position_detector.detectPosition(screenshot_next, screenshot)        
+        cv2.destroyAllWindows() 
         return position
 
 
     def detect_automatically(self):
         position = self.detect_position()
         x_pos, y_pos = position
-
         print(f"(x,y) = {x_pos,y_pos}")
-
         # # Fülle die erkannten Werte in die Textboxen ein
         self.x_pos_entry.delete(0, tk.END)
         self.x_pos_entry.insert(0, str(x_pos))
@@ -228,7 +210,6 @@ class Application(tk.Tk):
         self.y_pos_entry.insert(0, str(y_pos))
         self.size_entry.delete(0, tk.END)
         self.size_entry.insert(0, str(1))  # Assuming size is always 1
-
 
     def add_new_figure(self):
         name = self.name_entry.get()
@@ -239,69 +220,103 @@ class Application(tk.Tk):
         initiative = self.initiative_entry.get()
         figure_type = None
         
-
         # Konvertiere die Felder in die entsprechenden Typen
         x_pos = int(x_pos)
         y_pos = int(y_pos)
         size = int(size)
         initiative = int(initiative)
-
         try:
             figure_type = Figure_Type[figure_type_str.upper()]
         except KeyError:
             messagebox.showerror("Ungültiger Typ", f"Der Typ '{figure_type_str}' ist ungültig.")
             return
-
         position = (x_pos, y_pos)
-
         # Überprüfen, ob alle Felder ausgefüllt sind
         if not name or not figure_type or not x_pos or not y_pos or not size or not initiative:
             messagebox.showwarning("Eingabefehler", "Bitte füllen Sie alle Felder aus, bevor Sie eine Spielfigur hinzufügen.")
             return
         print(f"Added New Figure: Name={name}, Type={figure_type}, Position={position}, Size={size}, Initiative={initiative}")
-        
         # Füge die Figur zum Spielfeld hinzu
         self.game_field.add_figure(name, figure_type, position, size, initiative)
-
         # Aktualisiere die Figurenliste im Popup
         self.update_figures_tree()
-
-
-
 
     def add_event(self):
         x_pos = int(self.event_x_pos_entry.get())
         y_pos = int(self.event_y_pos_entry.get())
         size = int(self.event_size_entry.get())
         event_type_str = self.event_type_var.get()
-
         try:
             event_type = Event_Type[event_type_str.upper()]
         except KeyError:
             messagebox.showerror("Ungültiger Typ", f"Der Typ '{event_type_str}' ist ungültig.")
             return
-        
         position = (x_pos, y_pos)
-
-
         if not x_pos or not y_pos or not size or not event_type:
             messagebox.showwarning("Eingabefehler", "Bitte füllen Sie alle Felder aus, bevor Sie ein Event hinzufügen.")
             return
-        
-
         self.game_field.add_event(event_type,position,size)
-
         print(f"Added Event: x_pos={x_pos}, y_pos={y_pos}, Größe={size}, Type={event_type}")
 
-        
-
-    def game_loop(self):
-        if self.running:
-            # Placeholder for game logic
-            print("Game loop iteration")
 
 # ------------------------------------------------------------------------------ Helper ------------------------------------------------------------------------------------- #
-   
+    def get_current_figure(self):
+        all_figures_count = len(self.game_field.figures)
+        selected_figure = self.game_field.figures[self.round % all_figures_count]
+        return selected_figure
+    
+    def draw_figure_radius(self,overlay_path, background, position, factor=1):  
+        factor = 5 * factor
+        # Read the overlay image
+        overlay_image = cv2.imread(overlay_path, cv2.IMREAD_UNCHANGED)
+        if overlay_image is None:
+            print(f"Error: Unable to read overlay image from {overlay_path}")
+            return
+        # Save the original background image
+        if self.original_background is None:
+            self.original_background = background.copy() #Background muss am Anfang unser scaled_image sein! StartKlick: scaled_image als background // NextRound: Bild mit Overlay als background
+        # Calculate the size of each cell
+        cell_height = background.shape[0] // self.map.num_cells_y  # Number of cells in y-direction
+        cell_width = background.shape[1] // self.map.num_cells_x   # Number of cells in x-direction
+        # Resize the overlay image to the size of a cell
+        overlay_resized = cv2.resize(overlay_image, (cell_width * factor, cell_height * factor), interpolation=cv2.INTER_LINEAR)
+        # Get the position on the map
+        x, y = position
+        x_offset = x * cell_width
+        y_offset = y * cell_height
+        # Ensure the overlay fits within the background dimensions
+        y1, y2 = y_offset, y_offset + overlay_resized.shape[0]
+        x1, x2 = x_offset, x_offset + overlay_resized.shape[1]
+        y1 = max(y1, 0)
+        y2 = min(y2, background.shape[0])
+        x1 = max(x1, 0)
+        x2 = min(x2, background.shape[1])
+        # Overlay the resized image on the background
+        if overlay_resized.shape[2] == 4:  # If the overlay has an alpha channel
+            alpha_mask = overlay_resized[:, :, 3] / 255.0
+            overlay_colors = overlay_resized[:, :, :3]
+            for c in range(0, 3):
+                background[y1:y2, x1:x2, c] = (1. - alpha_mask) * background[y1:y2, x1:x2, c] + alpha_mask * overlay_colors[:, :, c]
+        # Update the Tkinter window
+        self.update_tkinter_image(background)
+
+    def remove_figure_radius(self,background): 
+        if original_background is not None:
+            background[:, :, :] = self.original_background[:, :, :]
+
+        # Update the Tkinter window
+        self.update_tkinter_image(background)
+
+    def update_tkinter_image(self,image):
+        rgb_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        image_pil = Image.fromarray(rgb_image)
+        image_tk = ImageTk.PhotoImage(image_pil)
+
+        # Assuming 'map_label' is a global variable referring to the Tkinter label widget
+        self.map_label.config(image=image_tk)
+        self.map_label.image = image_tk
+
+
     def on_click(self, x, y, points, pressed):
         if pressed:
             print(f"Point selected: ({x}, {y})")
@@ -313,7 +328,7 @@ class Application(tk.Tk):
         scale_factor = self.slider.get()
         self.map.resize_map(scale_factor)
         self.update_map_image()
-    
+
     def update_map_image(self):
         # Verwende das skalierte und rotierte Bild aus dem OpenCV-Fenster
         bgr_image = self.scaled_image
@@ -333,7 +348,6 @@ class Application(tk.Tk):
     def get_char_list_length(self):
         print("get_char_list_length")
         return 5  # Placeholder value
-
 
     def take_screenshot(self, save_path):
         bbox = (self.region["left"], self.region["top"], 
@@ -382,7 +396,7 @@ class Application(tk.Tk):
         # cv2.waitKey(0)
 
         return transformed_image
-    
+
     def update_figures_tree(self):
         if not hasattr(self, 'figures_tree'):
             return
@@ -393,11 +407,11 @@ class Application(tk.Tk):
         for figure in self.game_field.figures:
             self.figures_tree.insert("", "end", values=(figure.name, figure.type.value, figure.position,figure.initiative, figure.size))
 
-        
+            
 
 
 
-# ------------------------------------------------------------------------------ GUI ------------------------------------------------------------------------------------- #
+    # ------------------------------------------------------------------------------ GUI ------------------------------------------------------------------------------------- #
 
     def show_start_window(self):
         self.start_window = tk.Toplevel(self)
@@ -409,7 +423,7 @@ class Application(tk.Tk):
         select_button.pack(pady=10)
         start_button = tk.Button(self.start_window, text="Continue", command=lambda: self.start_init(self.start_window))
         start_button.pack(pady=10)
-        
+            
 
     def show_map_window(self):
         if self.map_window is not None:
@@ -423,7 +437,7 @@ class Application(tk.Tk):
         
         self.update_map_image()
 
-    
+
     def show_opencv_window(self):
         def on_trackbar(val):
             update_image()
@@ -466,6 +480,8 @@ class Application(tk.Tk):
 
         cv2.createTrackbar("Scale", "Adjust Map", 100, 200, on_trackbar)
         cv2.createTrackbar("Rotate", "Adjust Map", 0, 3, on_trackbar)  # Slider auf Werte 0 bis 3 beschränken
+        
+        self.overlayed_background = self.scaled_image
 
         cv2.waitKey(0)
         cv2.destroyAllWindows()
@@ -485,7 +501,7 @@ class Application(tk.Tk):
         self.start_button = tk.Button(self, text="Start", command=self.start)
         self.start_button.pack(pady=10)
 
-     
+        
         
         # Button for next round
         self.next_round_button = tk.Button(self, text="Next Round", command=self.next_round)
