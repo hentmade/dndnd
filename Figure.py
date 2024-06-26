@@ -11,7 +11,7 @@ class Figure_Type(Enum):
 
 class Figure(Object):
     id_counters = {type: 0 for type in Figure_Type}
-    def __init__(self,name,type,position,size,initiative):
+    def __init__(self,name,type,position,initiative,size):
         super().__init__(type,position,size)
         self.name = name
         self.size = size

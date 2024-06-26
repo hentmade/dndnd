@@ -130,6 +130,8 @@ class Application(tk.Tk):
 # ------------------------------------------------------------------------------ GameLogic ------------------------------------------------------------------------------------- #
     
     def start(self):
+    
+
         if not self.map_path:
             messagebox.showwarning("No Map Selected", "Please select a map file before starting.")
             return
@@ -146,9 +148,11 @@ class Application(tk.Tk):
         print(f"Figure {self.selected_figure.name} on startposition {start_position}")
 
     def next_round(self):
+        
+
         if self.running:
             print(f"Next Round {self.round}")
-
+        
         self.screenshot_next = self.detect_one_position()
         start_position = self.selected_figure.position
         end_position = self.position_detector.detectPosition(self.screenshot_next, self.screenshot_prev)    
@@ -264,55 +268,73 @@ class Application(tk.Tk):
         all_figures_count = len(self.game_field.figures)
         selected_figure = self.game_field.figures[self.round % all_figures_count]
         return selected_figure
-    
-    def draw_figure_radius(self,overlay_path, background, position, factor=1):  
-        factor = 5 * factor
+
+    def draw_figure_radius(self, overlay_path, background, position, factor=1):
+        factor = 5 * factor  # Stretch factor
         # Read the overlay image
         overlay_image = cv2.imread(overlay_path, cv2.IMREAD_UNCHANGED)
         if overlay_image is None:
             print(f"Error: Unable to read overlay image from {overlay_path}")
             return
         # Save the original background image
-        if self.original_background is None:
-            self.original_background = background.copy() #Background muss am Anfang unser scaled_image sein! StartKlick: scaled_image als background // NextRound: Bild mit Overlay als background
-        # Calculate the size of each cell
-        cell_height = background.shape[0] // self.map.num_cells_y  # Number of cells in y-direction
-        cell_width = background.shape[1] // self.map.num_cells_x   # Number of cells in x-direction
-        # Resize the overlay image to the size of a cell
-        overlay_resized = cv2.resize(overlay_image, (cell_width * factor, cell_height * factor), interpolation=cv2.INTER_LINEAR)
+        if not hasattr(self, 'original_background') or self.original_background is None:
+            self.original_background = background.copy()  # Background muss am Anfang unser scaled_image sein! StartKlick: scaled_image als background // NextRound: Bild mit Overlay als background
+        # Calculate the size of each cell with higher precision
+        cell_height = background.shape[0] / self.map.num_cells_y  # Number of cells in y-direction
+        cell_width = background.shape[1] / self.map.num_cells_x   # Number of cells in x-direction
+        print(f"Cell Height: {cell_height}")
+        print(f"Cell Width: {cell_width}")
+        # Resize the overlay image to the size of the factor * cell dimensions
+        overlay_resized = cv2.resize(overlay_image, (int(cell_width * factor), int(cell_height * factor)), interpolation=cv2.INTER_LINEAR)
         # Get the position on the map
         x, y = position
-        x_offset = x * cell_width
-        y_offset = y * cell_height
+        print(f"x, y: {x, y}")
+        # Calculate the center position
+        x_center = x * cell_width + (cell_width / 2)
+        y_center = y * cell_height + (cell_height / 2)
+        print(f"x_center: {x_center}")
+        print(f"y_center: {y_center}")
+        # Calculate the top-left corner of the overlay
+        x_offset = int(x_center - (overlay_resized.shape[1] / 2))
+        y_offset = int(y_center - (overlay_resized.shape[0] / 2))
+        print(f"x_offset: {x_offset}")
+        print(f"y_offset: {y_offset}")
         # Ensure the overlay fits within the background dimensions
         y1, y2 = y_offset, y_offset + overlay_resized.shape[0]
         x1, x2 = x_offset, x_offset + overlay_resized.shape[1]
+        print(f"x1, x2: {x1, x2}")
+        print(f"y1, y2: {y1, y2}")
         y1 = max(y1, 0)
         y2 = min(y2, background.shape[0])
         x1 = max(x1, 0)
         x2 = min(x2, background.shape[1])
-        # Overlay the resized image on the background
-        if overlay_resized.shape[2] == 4:  # If the overlay has an alpha channel
-            alpha_mask = overlay_resized[:, :, 3] / 255.0
-            overlay_colors = overlay_resized[:, :, :3]
+        print(f"Clipped x1, x2: {x1, x2}")
+        print(f"Clipped y1, y2: {y1, y2}")
+        # Clip the overlay image if it goes out of the background boundaries
+        overlay_clipped = overlay_resized[:y2 - y1, :x2 - x1]
+        print(f"Overlay_clipped.shape: {overlay_clipped.shape}")
+        # Check if the clipped overlay fits within the background
+        if overlay_clipped.shape[0] != (y2 - y1) or overlay_clipped.shape[1] != (x2 - x1):
+            print(f"Error: Overlay dimensions {overlay_clipped.shape[:2]} do not match the target area {y2 - y1, x2 - x1}")
+            return
+        if overlay_clipped.shape[2] == 4:  # If the overlay has an alpha channel
+            alpha_mask = overlay_clipped[:, :, 3] / 255.0
+            overlay_colors = overlay_clipped[:, :, :3]
             for c in range(0, 3):
                 background[y1:y2, x1:x2, c] = (1. - alpha_mask) * background[y1:y2, x1:x2, c] + alpha_mask * overlay_colors[:, :, c]
         # Update the Tkinter window
         self.update_tkinter_image(background)
 
-    def remove_figure_radius(self,background): 
-        if original_background is not None:
+    def remove_figure_radius(self, background):
+        if self.original_background is not None:
             background[:, :, :] = self.original_background[:, :, :]
-
         # Update the Tkinter window
         self.update_tkinter_image(background)
 
-    def update_tkinter_image(self,image):
+    def update_tkinter_image(self, image):
         rgb_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         image_pil = Image.fromarray(rgb_image)
         image_tk = ImageTk.PhotoImage(image_pil)
-
-        # Assuming 'map_label' is a global variable referring to the Tkinter label widget
         self.map_label.config(image=image_tk)
         self.map_label.image = image_tk
 
@@ -470,6 +492,7 @@ class Application(tk.Tk):
 
             cv2.imshow("Adjust Map", rotated_image)
             self.scaled_image = rotated_image
+            self.overlayed_background = self.scaled_image
 
         # Lesen und Anzeigen des Originalbilds
         self.original_image = cv2.imread(self.map_path)
@@ -481,7 +504,7 @@ class Application(tk.Tk):
         cv2.createTrackbar("Scale", "Adjust Map", 100, 200, on_trackbar)
         cv2.createTrackbar("Rotate", "Adjust Map", 0, 3, on_trackbar)  # Slider auf Werte 0 bis 3 beschränken
         
-        self.overlayed_background = self.scaled_image
+        
 
         cv2.waitKey(0)
         cv2.destroyAllWindows()
@@ -692,5 +715,5 @@ class Application(tk.Tk):
 
 #following code is the call for the GUI in game.py
 if __name__ == "__main__":
-    app = Application(30,40)
+    app = Application(100,100)
     app.mainloop()
