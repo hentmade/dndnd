@@ -29,13 +29,14 @@ class Map:
 
 
     #ToDo: draw_event_overlay und draw_figure_radius ist genau dsaselbe nur dass wir den Faktor ausschalten müssen! --> figure_radius noch hier rüber ziehen
-    def draw_overlay(self, overlay_path, background, position, size=None):
-        #factor = 5 * factor  # Stretch factor
+    def draw_overlay(self, overlay_path, background, position, size=None,isRadius=False):
+        #factor = 5 * factor  #Stretch factor
 
-        if size is None:
-            factor = 1 
-        else: 
+        if isRadius:
             factor = 5 * size
+        else:
+            factor = size
+
         # Read the overlay image
         overlay_image = cv2.imread(overlay_path, cv2.IMREAD_UNCHANGED)
         if overlay_image is None:
@@ -47,37 +48,37 @@ class Map:
         # Calculate the size of each cell with higher precision
         cell_height = background.shape[0] / self.num_cells_y  # Number of cells in y-direction
         cell_width = background.shape[1] / self.num_cells_x   # Number of cells in x-direction
-        print(f"Cell Height: {cell_height}")
-        print(f"Cell Width: {cell_width}")
+        # print(f"Cell Height: {cell_height}")
+        # print(f"Cell Width: {cell_width}")
         # Resize the overlay image to the size of the factor * cell dimensions
         overlay_resized = cv2.resize(overlay_image, (int(cell_width * factor), int(cell_height * factor)), interpolation=cv2.INTER_LINEAR)
         # Get the position on the map
         x, y = position
-        print(f"x, y: {x, y}")
+        # print(f"x, y: {x, y}")
         # Calculate the center position
         x_center = x * cell_width + (cell_width / 2)
         y_center = y * cell_height + (cell_height / 2)
-        print(f"x_center: {x_center}")
-        print(f"y_center: {y_center}")
+        # print(f"x_center: {x_center}")
+        # print(f"y_center: {y_center}")
         # Calculate the top-left corner of the overlay
         x_offset = int(x_center - (overlay_resized.shape[1] / 2))
         y_offset = int(y_center - (overlay_resized.shape[0] / 2))
-        print(f"x_offset: {x_offset}")
-        print(f"y_offset: {y_offset}")
+        # print(f"x_offset: {x_offset}")
+        # print(f"y_offset: {y_offset}")
         # Ensure the overlay fits within the background dimensions
         y1, y2 = y_offset, y_offset + overlay_resized.shape[0]
         x1, x2 = x_offset, x_offset + overlay_resized.shape[1]
-        print(f"x1, x2: {x1, x2}")
-        print(f"y1, y2: {y1, y2}")
+        # print(f"x1, x2: {x1, x2}")
+        # print(f"y1, y2: {y1, y2}")
         y1 = max(y1, 0)
         y2 = min(y2, background.shape[0])
         x1 = max(x1, 0)
         x2 = min(x2, background.shape[1])
-        print(f"Clipped x1, x2: {x1, x2}")
-        print(f"Clipped y1, y2: {y1, y2}")
+        # print(f"Clipped x1, x2: {x1, x2}")
+        # print(f"Clipped y1, y2: {y1, y2}")
         # Clip the overlay image if it goes out of the background boundaries
         overlay_clipped = overlay_resized[:y2 - y1, :x2 - x1]
-        print(f"Overlay_clipped.shape: {overlay_clipped.shape}")
+        # print(f"Overlay_clipped.shape: {overlay_clipped.shape}")
         # Check if the clipped overlay fits within the background
         if overlay_clipped.shape[0] != (y2 - y1) or overlay_clipped.shape[1] != (x2 - x1):
             print(f"Error: Overlay dimensions {overlay_clipped.shape[:2]} do not match the target area {y2 - y1, x2 - x1}")

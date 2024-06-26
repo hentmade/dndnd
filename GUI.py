@@ -43,6 +43,7 @@ class Application(tk.Tk):
         self.map_image = None  # Variable to store the map image
         self.map_label = None  # Label to display the map image
         self.original_background=None
+        self.initial_background=None
         self.scaled_image=None
         self.overlayed_background=None
         self.game_field = None
@@ -117,7 +118,11 @@ class Application(tk.Tk):
         if not self.map_path:
             messagebox.showwarning("No Map Selected", "Please select a map file before starting.")
             return
+        elif not self.game_field.figures:
+            messagebox.showwarning("No Figure added", "Please add a figure before starting.")
+            return
         self.running = True
+        self.start_button.config(state='disabled')
         print("Game started")
 
         self.selected_figure = self.get_current_figure() 
@@ -125,7 +130,9 @@ class Application(tk.Tk):
         start_position = self.selected_figure.position
         size = self.selected_figure.size
 
-        self.draw_figure_radius(radius_path,self.overlayed_background,start_position,size)
+        self.map.draw_overlay(radius_path,self.overlayed_background,start_position,size,isRadius=True)
+
+        # self.draw_figure_radius(radius_path,self.overlayed_background,start_position,size)
     
         print(f"Figure {self.selected_figure.name} on startposition {start_position}")
 
@@ -136,9 +143,10 @@ class Application(tk.Tk):
         
         self.screenshot_next = self.detect_one_position()
         start_position = self.selected_figure.position
-        end_position = self.position_detector.detectPosition(self.screenshot_next, self.screenshot_prev)    
+        end_position,size = self.position_detector.detectPosition(self.screenshot_next, self.screenshot_prev)    
 
-        self.remove_figure_radius(self.overlayed_background)
+        #self.remove_figure_radius(self.overlayed_background)
+        self.map.remove_overlay(self.overlayed_background)
 
         self.game_field.move_figure(self.selected_figure,start_position,end_position,self.overlayed_background) #ToDo: Schauen ob tatsächlich der Background mit Event der Original-Background wird
         print(f"Figure {self.selected_figure.name} moved to endposition {end_position} ")
@@ -150,7 +158,7 @@ class Application(tk.Tk):
         start_position = self.selected_figure.position
         size = self.selected_figure.size
 
-        self.draw_figure_radius(radius_path,self.overlayed_background,start_position,size)
+        self.map.draw_overlay(radius_path,self.overlayed_background,start_position,size,isRadius=True)
 
         print(f"Figure {self.selected_figure.name} on startposition {start_position}")
 
@@ -163,7 +171,29 @@ class Application(tk.Tk):
     def end(self):
         self.running = False
         print("Ended")
+        self.start_button.config(state='normal') 
         self.quit()
+
+    def reset(self):
+        self.running = False
+        print("Game Reset")
+        self.start_button.config(state='normal') 
+        self.round = 0
+        self.game_field.figures.clear()
+        
+        for row in self.game_field.cells:
+            for cell in row:
+                cell.remove_event()
+                cell.remove_figure()
+
+
+
+        # Close and reopen the map window with the initial scaled imag  
+        # if self.map_window is not None:
+        #     self.map_window.destroy()      
+        cv2.imshow("Scaled Image",self.initial_background)
+        cv2.waitKey(0)
+        self.update_tkinter_image(self.initial_background)
     
 
     def detect_one_position(self):
@@ -182,13 +212,13 @@ class Application(tk.Tk):
         screenshot_next = cv2.imread(screenshot_path)
         # cv2.imshow("Next Screenshot", screenshot_next)
         # cv2.waitKey(0)
-        position = self.position_detector.detectPosition(screenshot_next, screenshot)        
+        position,size = self.position_detector.detectPosition(screenshot_next, screenshot)        
         cv2.destroyAllWindows() 
-        return position
+        return position,size
 
 
     def detect_automatically(self):
-        position = self.detect_position()
+        position,size = self.detect_position()        
         x_pos, y_pos = position
         print(f"(x,y) = {x_pos,y_pos}")
         # # Fülle die erkannten Werte in die Textboxen ein
@@ -197,7 +227,7 @@ class Application(tk.Tk):
         self.y_pos_entry.delete(0, tk.END)
         self.y_pos_entry.insert(0, str(y_pos))
         self.size_entry.delete(0, tk.END)
-        self.size_entry.insert(0, str(1))  # Assuming size is always 1
+        self.size_entry.insert(0, str(size))  
 
 
     def add_new_figure(self):
@@ -228,6 +258,14 @@ class Application(tk.Tk):
         self.game_field.add_figure(name, figure_type, position, initiative, size)
         # Aktualisiere die Figurenliste im Popup
         self.update_figures_tree()
+        self.name_entry.delete(0, tk.END)
+        self.x_pos_entry.delete(0, tk.END)
+        self.y_pos_entry.delete(0, tk.END)
+        self.size_entry.delete(0, tk.END)
+        self.type_dropdown.delete(0,tk.END)
+        self.initiative_entry.delete(0,tk.END)
+        
+
 
 
     def add_event(self):
@@ -466,6 +504,7 @@ class Application(tk.Tk):
             cv2.imshow("Adjust Map", rotated_image)
             self.scaled_image = rotated_image
             self.overlayed_background = self.scaled_image
+            self.initial_background = self.scaled_image.copy()
         # Lesen und Anzeigen des Originalbilds
         self.original_image = cv2.imread(self.map_path)
         self.scaled_image = self.original_image.copy()
@@ -485,7 +524,7 @@ class Application(tk.Tk):
         self.start_init_button = tk.Button(self, text="StartInit", command=self.show_popup)
         self.start_init_button.pack(pady=10)
         # Button to start
-        self.start_button = tk.Button(self, text="Start", command=self.start)
+        self.start_button = tk.Button(self, text="Start Game", command=self.start)
         self.start_button.pack(pady=10)        
         # Button for next round
         self.next_round_button = tk.Button(self, text="Next Round", command=self.next_round)
@@ -493,7 +532,7 @@ class Application(tk.Tk):
         # Dropdown menu for skip X rounds
         self.skip_rounds_frame = tk.Frame(self)
         self.skip_rounds_frame.pack(pady=10)
-        self.skip_label = tk.Label(self.skip_rounds_frame, text="Skip")
+        self.skip_label = tk.Label(self.skip_rounds_frame, text="Skip Round")
         self.skip_label.pack(side=tk.LEFT)
         self.rounds_var = tk.IntVar(value=1)
         self.skip_rounds_dropdown = ttk.Combobox(self.skip_rounds_frame, textvariable=self.rounds_var)
@@ -501,8 +540,11 @@ class Application(tk.Tk):
         self.skip_rounds_dropdown.pack(side=tk.LEFT)
         self.rounds_label = tk.Label(self.skip_rounds_frame, text="rounds")
         self.rounds_label.pack(side=tk.LEFT)
-        self.skip_button = tk.Button(self.skip_rounds_frame, text="Skip", command=self.skip_rounds)
+        self.skip_button = tk.Button(self.skip_rounds_frame, text="Skip Rounds", command=self.skip_rounds)
         self.skip_button.pack(side=tk.LEFT)
+        # Button to end
+        self.end_button = tk.Button(self, text="Reset", command=self.reset)
+        self.end_button.pack(pady=10)
         # Button to end
         self.end_button = tk.Button(self, text="End", command=self.end)
         self.end_button.pack(pady=10)

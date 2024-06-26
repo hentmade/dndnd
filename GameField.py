@@ -44,8 +44,9 @@ class GameField:
         end_cell.figure = figure 
         #ToDo: Event noch anpassen
         if end_cell.event is not None:
+            size = end_cell.event.size
             self.trigger_event(end_position) # Status wird auf triggerd gestellt
-            self.set_visu_state(end_cell.event.type,background,end_position) # ToDO: Size für Event hinzufügen und übergeben
+            self.set_visu_state(end_cell.event.type,background,end_position,size) # ToDO: Size für Event hinzufügen und übergeben
             self.remove_event(end_position) # Event wird removed damit es nicht nochmal getriggert wird
         
     def remove_figure(self,position):
@@ -74,7 +75,7 @@ class GameField:
         cell = self.get_cell(position)
         cell.set_visu_state(visu_state)
         #self.map.add_overlay(cell.visu_state,position)
-        self.map.draw_overlay(cell.visu_state,background,position,size)
+        self.map.draw_overlay(cell.visu_state,background,position,size,isRadius=False)
 
         #ToDo: Hier muss von Map eine Funktion aufgerufen werden, welche das Overlay dauerhaft dem passenden Background hinzufügt
         # --> self.map.draw_overlay(self.visu_state,background,position,size) ähnlich wie die draw_figure_radius!
