@@ -66,9 +66,9 @@ class Application(tk.Tk):
             self.map = Map(self.map_path)    
             self.show_opencv_window()       
             self.initialize_game()
+            self.show_map_window()
             self.show_camera_popup()
             self.wait_window(self.camera_popup)
-            self.show_map_window()
             self.show_popup()
             self.deiconify() 
         else:

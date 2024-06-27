@@ -15,8 +15,10 @@ class PositionDetection:
       backgroundSubtractor = BackgroundSubtraction()
       difference_img = backgroundSubtractor.subtract(img_foreground, img_background)
 
-      # cv2.imshow("Difference Image",difference_img)
-      # cv2.waitKey(0)
+      cv2.imshow("1 Image",img_foreground)
+      cv2.imshow("2 Image",img_background)
+      cv2.imshow("Difference Image",difference_img)
+      cv2.waitKey(0)
       
       diff_img_height, diff_img_width = difference_img.shape
       cell_width = diff_img_width/self.game_field_width
@@ -65,6 +67,8 @@ class PositionDetection:
             position = position_2[0]
             print(f"Position für 2x2: {position}")
          else:
+
+            #conflict resolution
             print("Fehler: Figur bitte erneut platzieren")
             position = (0,0)
             #TODO check error behaviour
