@@ -66,9 +66,9 @@ class Application(tk.Tk):
             self.map = Map(self.map_path)    
             self.show_opencv_window()       
             self.initialize_game()
+            self.show_map_window()
             self.show_camera_popup()
             self.wait_window(self.camera_popup)
-            self.show_map_window()
             self.show_popup()
             self.deiconify() 
         else:
@@ -126,41 +126,53 @@ class Application(tk.Tk):
         print("Game started")
 
         self.selected_figure = self.get_current_figure() 
+
+        # Erster Screenshot ohne Radius
         self.screenshot_prev = self.detect_one_position()      
         start_position = self.selected_figure.position
         size = self.selected_figure.size
 
+        # Radius wird gezeichnet
         self.map.draw_overlay(radius_path,self.overlayed_background,start_position,size,isRadius=True)
 
-        # self.draw_figure_radius(radius_path,self.overlayed_background,start_position,size)
     
         print(f"Figure {self.selected_figure.name} on startposition {start_position}")
+
+        
+
 
     # Event auf (31,11) // (43,25)
     def next_round(self):  
         if self.running:
             print(f"Next Round {self.round}")
-        
-        self.screenshot_next = self.detect_one_position()
-        start_position = self.selected_figure.position
-        end_position,size = self.position_detector.detectPosition(self.screenshot_next, self.screenshot_prev)    
 
-        #self.remove_figure_radius(self.overlayed_background)
+        # Radius wird entfernt
         self.map.remove_overlay(self.overlayed_background)
 
+        # Zweiter Screenshot ohne Radius
+        self.screenshot_next = self.detect_one_position()
+        start_position = self.selected_figure.position
+
+        # Differenz aus Screenshots bilden
+        end_position,size = self.position_detector.detectPosition(self.screenshot_next, self.screenshot_prev)
+
+        # Figur bewegen
         self.game_field.move_figure(self.selected_figure,start_position,end_position,self.overlayed_background) #ToDo: Schauen ob tatsächlich der Background mit Event der Original-Background wird
         print(f"Figure {self.selected_figure.name} moved to endposition {end_position} ")
 
+        # Nächste Runde weiterschalten
         self.round +=1
-
         self.selected_figure = self.get_current_figure() 
+
+        # Erster Screenshot ohne Radius
         self.screenshot_prev = self.detect_one_position()      
         start_position = self.selected_figure.position
         size = self.selected_figure.size
 
+        # Radius wird gezeichnet
         self.map.draw_overlay(radius_path,self.overlayed_background,start_position,size,isRadius=True)
-
         print(f"Figure {self.selected_figure.name} on startposition {start_position}")
+
 
 
     def skip_rounds(self):
@@ -469,9 +481,11 @@ class Application(tk.Tk):
         if self.map_window is not None:
             self.map_window.destroy()
         self.map_window = tk.Toplevel(self)
+        self.map_window.overrideredirect(True) 
         self.map_window.title("Map Display")
         self.map_window.geometry("800x600")
-        self.map_label = tk.Label(self.map_window)
+        self.map_window.configure(bg="black")
+        self.map_label = tk.Label(self.map_window, bg="black")
         self.map_label.pack()
         # self.map.map_label = tk.Label(self.map_window)
         # self.map.map_label.pack()

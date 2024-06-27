@@ -56,8 +56,8 @@ class Map:
         x, y = position
         # print(f"x, y: {x, y}")
         # Calculate the center position
-        x_center = x * cell_width + (cell_width / 2)
-        y_center = y * cell_height + (cell_height / 2)
+        x_center = x * cell_width + size * (cell_width / 2)
+        y_center = y * cell_height + size * (cell_height / 2)
         # print(f"x_center: {x_center}")
         # print(f"y_center: {y_center}")
         # Calculate the top-left corner of the overlay
@@ -90,6 +90,7 @@ class Map:
                 background[y1:y2, x1:x2, c] = (1. - alpha_mask) * background[y1:y2, x1:x2, c] + alpha_mask * overlay_colors[:, :, c]
         # Update the Tkinter window
         self.update_tkinter_image(background)
+        self.map_label.update_idletasks()
 
     def update_tkinter_image(self, image):
         rgb_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
@@ -104,6 +105,7 @@ class Map:
             background[:, :, :] = self.original_background[:, :, :]
         # Update the Tkinter window
         self.update_tkinter_image(background)
+        self.map_label.update_idletasks()
     
 
     # ------------------------------------------------------------------------------------DEPRECATED----------------------------------------------------------------------------------
