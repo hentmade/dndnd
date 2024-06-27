@@ -17,9 +17,8 @@ class Cell:
         self.event = None
         self.visu_state = None
 
-
-    def add_figure(self,name,type,size=1):
-        self.figure = Figure(name,type,self.position,size)
+    def add_figure(self,name,type,initiative,size=1):
+        self.figure = Figure(name,type,self.position,initiative,size)
         return self.figure
     
     def remove_figure(self):
@@ -38,7 +37,7 @@ class Cell:
     def set_visu_state(self, state):
         if state is not None:
             if self.event.triggered:
-                self.visu_state = state.value
+                self.visu_state = state.value #ToDo: Das ist ein Pfad state.value! --> Pfad muss als Overlay geöffnet und angezeigt werden
         else: 
             self.visu_state=None
 

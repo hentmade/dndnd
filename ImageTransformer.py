@@ -44,3 +44,23 @@ class ImageTransformer:
         image = cv2.warpPerspective(image, transformation_matrix, (image.shape[1], image.shape[0]))
     
         return image
+
+    def transform_image(self, image):
+        # Define the destination points for the perspective transformation
+        width = max(abs(self.clicked_points[1][0] - self.clicked_points[0][0]), abs(self.clicked_points[2][0] - self.clicked_points[3][0]))
+        height = max(abs(self.clicked_points[3][1] - self.clicked_points[0][1]), abs(self.clicked_points[2][1] - self.clicked_points[1][1]))
+
+        dst_points = np.array([
+            [0, 0],
+            [width - 1, 0],
+            [width - 1, height - 1],
+            [0, height - 1]
+        ], dtype="float32")
+
+        # Compute the perspective transform matrix
+        matrix = cv2.getPerspectiveTransform(np.array(self.clicked_points, dtype="float32"), dst_points)
+
+        # Apply the perspective transformation
+        transformed_image = cv2.warpPerspective(image, matrix, (width, height))
+
+        return transformed_image

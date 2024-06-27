@@ -14,6 +14,9 @@ class PositionDetection:
    def detectPosition(self, img_foreground, img_background):
       backgroundSubtractor = BackgroundSubtraction()
       difference_img = backgroundSubtractor.subtract(img_foreground, img_background)
+
+      # cv2.imshow("Difference Image",difference_img)
+      # cv2.waitKey(0)
       
       diff_img_height, diff_img_width = difference_img.shape
       cell_width = diff_img_width/self.game_field_width
@@ -36,6 +39,7 @@ class PositionDetection:
       
       if (maximum_area/difference_img.size) < self.amount_threshold_2x2:
          #object is 1x1
+         size = 1
          cells_to_be_examined = [(posX-1,posY-1), (posX+0,posY-1), (posX+1,posY-1),
                                  (posX-1,posY+0), (posX+0,posY+0), (posX+1,posY+0),
                                  (posX-1,posY+1), (posX+0,posY+1), (posX+1,posY+1)]
@@ -43,6 +47,7 @@ class PositionDetection:
       
       else:
          #object is 2x2
+         size = 2
          cells_to_be_examined = [(posX-2,posY-2), (posX-1,posY-2), (posX+0,posY-2), (posX+1,posY-2), (posX+2,posY-2),
                                  (posX-2,posY-1), (posX-1,posY-1), (posX+0,posY-1), (posX+1,posY-1), (posX+2,posY-1),
                                  (posX-2,posY+0), (posX-1,posY+0), (posX+0,posY+0), (posX+1,posY+0), (posX+2,posY+0),
@@ -56,13 +61,15 @@ class PositionDetection:
          
          sorted_tuple = tuple(sorted(cells_with_most_white_pixels, key=lambda x: (x[1], x[0])))
          if (sorted_tuple[0][0] + 1 == sorted_tuple[1][0]) and (sorted_tuple[0][0] == sorted_tuple[2][0]) and (sorted_tuple[0][1] + 1 == sorted_tuple[2][1]) and (sorted_tuple[2][1] == sorted_tuple[3][1]):
-            position = (sorted_tuple[0], sorted_tuple[-1])
+            position_2 = (sorted_tuple[0], sorted_tuple[-1])
+            position = position_2[0]
+            print(f"Position für 2x2: {position}")
          else:
             print("Fehler: Figur bitte erneut platzieren")
             position = (0,0)
             #TODO check error behaviour
 
-      return position
+      return position, size
    
    
    
