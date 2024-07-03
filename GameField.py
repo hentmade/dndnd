@@ -77,9 +77,7 @@ class GameField:
         #self.map.add_overlay(cell.visu_state,position)
         self.map.draw_overlay(cell.visu_state,background,position,size,isRadius=False)
 
-        #ToDo: Hier muss von Map eine Funktion aufgerufen werden, welche das Overlay dauerhaft dem passenden Background hinzufügt
-        # --> self.map.draw_overlay(self.visu_state,background,position,size) ähnlich wie die draw_figure_radius!
-
+    
 
 
 
