@@ -481,7 +481,7 @@ class Application(tk.Tk):
         if self.map_window is not None:
             self.map_window.destroy()
         self.map_window = tk.Toplevel(self)
-        self.map_window.overrideredirect(True) 
+        #self.map_window.overrideredirect(True) 
         self.map_window.title("Map Display")
         self.map_window.geometry("800x600")
         self.map_window.configure(bg="black")
