@@ -56,10 +56,12 @@ class Map:
         x, y = position
         # print(f"x, y: {x, y}")
         # Calculate the center position
-        # x_center = x * cell_width + size * (cell_width / 2)
-        # y_center = y * cell_height + size * (cell_height / 2)
-        x_center = x * cell_width + (cell_width / 2)
-        y_center = y * cell_height + (cell_height / 2)
+        if isRadius:
+            x_center = x * cell_width + size * (cell_width / 2)
+            y_center = y * cell_height + size * (cell_height / 2)
+        else:
+            x_center = x * cell_width + (cell_width / 2)
+            y_center = y * cell_height + (cell_height / 2)
         # print(f"x_center: {x_center}")
         # print(f"y_center: {y_center}")
         # Calculate the top-left corner of the overlay
