@@ -158,15 +158,17 @@ class Application(tk.Tk):
         end_position,size = self.position_detector.detectPosition(self.screenshot_next, self.screenshot_prev,self.selected_figure)
 
         # Figur bewegen
+        self.screenshot_prev = self.detect_one_position()
         self.game_field.move_figure(self.selected_figure,start_position,end_position,self.overlayed_background) #ToDo: Schauen ob tatsächlich der Background mit Event der Original-Background wird
         print(f"Figure {self.selected_figure.name} moved to endposition {end_position} ")
+        #self.map.remove_overlay()
 
         # Nächste Runde weiterschalten
         self.round +=1
         self.selected_figure = self.get_current_figure() 
 
         # Erster Screenshot ohne Radius
-        self.screenshot_prev = self.detect_one_position()      
+        #self.screenshot_prev = self.detect_one_position()      
         start_position = self.selected_figure.position
         size = self.selected_figure.size
 
@@ -263,7 +265,7 @@ class Application(tk.Tk):
             return
         position = (x_pos, y_pos)
         # Überprüfen, ob alle Felder ausgefüllt sind
-        if not name or not figure_type or not x_pos or not y_pos or not size or not initiative:
+        if not name or not figure_type or not size or not initiative or x_pos < 0 or y_pos < 0:
             messagebox.showwarning("Eingabefehler", "Bitte füllen Sie alle Felder aus, bevor Sie eine Spielfigur hinzufügen.")
             return
         print(f"Added New Figure: Name={name}, Type={figure_type}, Position={position}, Size={size}, Initiative={initiative}")
