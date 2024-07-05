@@ -7,3 +7,4 @@ mss
 tkinter
 typing
 enum
+pynput
