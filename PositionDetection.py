@@ -11,14 +11,17 @@ class PositionDetection:
       self.game_field_height = game_field_height
       self.amount_threshold_2x2 = 0.0014   #value for distinguishing between 1x1 and 2x2 objects
       
-   def detectPosition(self, img_foreground, img_background):
+   def detectPosition(self, img_foreground, img_background,current_figure=None):
       backgroundSubtractor = BackgroundSubtraction()
       difference_img = backgroundSubtractor.subtract(img_foreground, img_background)
 
-      cv2.imshow("1 Image",img_foreground)
-      cv2.imshow("2 Image",img_background)
-      cv2.imshow("Difference Image",difference_img)
-      cv2.waitKey(0)
+
+      # cv2.imshow("Foreground Image",img_foreground)
+      # cv2.waitKey(0)
+      # cv2.imshow("Background Image",img_background)
+      # cv2.waitKey(0)
+      # cv2.imshow("Difference Image",difference_img)
+      # cv2.waitKey(0)
       
       diff_img_height, diff_img_width = difference_img.shape
       cell_width = diff_img_width/self.game_field_width
@@ -32,6 +35,8 @@ class PositionDetection:
       #detect centroid:
       momentsDetector = MomentsDetection(contours[index_biggest_contour])
       #TODO error vom letzten Mal untersuchen, als Figur nicht bewegt wurde
+
+
       centerX = momentsDetector.detectX()
       centerY = momentsDetector.detectY()
       posX = math.floor((centerX / diff_img_width) * self.game_field_width)
@@ -70,7 +75,8 @@ class PositionDetection:
 
             #conflict resolution
             print("Fehler: Figur bitte erneut platzieren")
-            position = (0,0)
+            position = current_figure.position
+            size = current_figure.size
             #TODO check error behaviour
 
       return position, size
