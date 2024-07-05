@@ -477,17 +477,59 @@ class Application(tk.Tk):
         start_button = tk.Button(self.start_window, text="Continue", command=lambda: self.start_init(self.start_window))
         start_button.pack(pady=10)
             
+    def close_window(self):
+        self.map_window.destroy()
+    def max_window(self):
+        self.map_window.state('zoomed')
+    def min_window(self):
+        self.map_window.state('normal')
+    # Function to move the window
+    def move_window(self, event):
+        self.map_window.geometry(f'+{event.x_root}+{event.y_root}')
 
     def show_map_window(self):
         if self.map_window is not None:
             self.map_window.destroy()
+
+        
         self.map_window = tk.Toplevel(self)
         #self.map_window.overrideredirect(True) 
-        self.map_window.title("Map Display")
+        
         self.map_window.geometry("800x600")
-        self.map_window.configure(bg="black")
-        self.map_label = tk.Label(self.map_window, bg="black")
-        self.map_label.pack()
+        #True: display standart Title Bar False: display Custom Title Bar
+        if(False):
+            self.map_window.title("Map Display")
+            self.map_window.configure(bg="black")
+            self.map_label = tk.Label(self.map_window, bg="black")
+            self.map_label.pack()
+        else:
+            self.map_window.overrideredirect(True)
+            # Create a custom title bar
+            title_bar = tk.Frame(self.map_window, bg='black', relief='raised', bd=2)
+            title_bar.pack(fill=tk.X)
+            # Add a title label to the custom title bar
+            title_label = tk.Label(title_bar, text="Custom Title Bar - Approach 3", bg='black', fg='white')
+            title_label.pack(side=tk.LEFT, padx=10)
+
+            # Add a close button to the custom title bar
+            close_button = tk.Button(title_bar, text='X', command=self.close_window, bg='black', fg='white', relief='flat')
+            close_button.pack(side=tk.RIGHT, padx=5)
+
+            # Add a maximize button to the custom title bar
+            maximize_button = tk.Button(title_bar, text="[]", command=self.max_window,bg='black', fg='white', relief='flat')
+            maximize_button.pack(side=tk.RIGHT, padx=5)
+
+            # Add a maximize button to the custom title bar
+            minimize_button = tk.Button(title_bar, text="_", command=self.min_window,bg='black', fg='white', relief='flat')
+            minimize_button.pack(side=tk.RIGHT, padx=5) 
+            # Bind the title bar to the move window function
+            title_bar.bind('<B1-Motion>', self.move_window)           
+            # Add black background
+            self.map_label = tk.Label(self.map_window, bg="black")
+            self.map_label.pack()
+            
+
+
         # self.map.map_label = tk.Label(self.map_window)
         # self.map.map_label.pack()
         self.update_map_image()
