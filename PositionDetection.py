@@ -72,6 +72,8 @@ class PositionDetection:
             position = position_2[0]
             print(f"Position für 2x2: {position}")
          else:
+
+            #conflict resolution
             print("Fehler: Figur bitte erneut platzieren")
             position = current_figure.position
             size = current_figure.size
